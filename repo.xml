@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE repositories SYSTEM "/dtd/repositories.dtd">
+<repositories xmlns="" version="1.0">
+	<repo quality="experimental" status="unofficial">
+		<name>vampik</name>
+		<description>Vampik's Gentoo overlay</description>
+		<homepage>https://github.com/vampik/gentoo-overlay</homepage>
+		<owner type="person">
+			<email>admin@vampik.ru</email>
+		</owner>
+		<source type="git">git://github.com/vampik/gentoo-overlay.git</source>
+	</repo>
+</repositories>

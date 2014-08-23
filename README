@@ -1,0 +1,3 @@
+Adding to layman (>=layman-2.0.0_rc*):
+
+wget -O /etc/layman/overlays/vampik.xml https://raw.github.com/vampik-overlay/gentoo/master/repo.xml
