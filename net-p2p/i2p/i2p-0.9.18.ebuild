@@ -1,186 +1,97 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: $
+# $Id$
 
-EAPI="4"
+EAPI="5"
 
-inherit eutils java-pkg-2 java-ant-2 pax-utils systemd user
+inherit eutils java-pkg-2 java-ant-2 systemd user
 
-DESCRIPTION="I2P is an anonymous network."
-
+DESCRIPTION="A privacy-centric, anonymous network."
+HOMEPAGE="https://geti2p.net"
 SRC_URI="https://download.i2p2.de/releases/${PV}/i2psource_${PV}.tar.bz2"
-HOMEPAGE="http://www.i2p2.de/"
 
+LICENSE="Apache-2.0 Artistic BSD CC-BY-2.5 CC-BY-3.0 CC-BY-SA-3.0 EPL-1.0 GPL-2 GPL-3 LGPL-2.1 LGPL-3 MIT public-domain WTFPL-2"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~ppc64 ~x86"
-LICENSE="Apache-2.0 BSD GPL-2 GPL-3 IJG LGPL-2.1 LGPL-3 MIT MPL-1.1 public-domain"
-IUSE="initscript nls systemd"
-DEPEND=">=virtual/jdk-1.6
-	dev-java/java-service-wrapper
-	dev-libs/gmp
-	sys-devel/gettext
-	systemd? ( sys-apps/systemd )"
-RDEPEND="${DEPEND}"
+# Until the deps reach other arches
+KEYWORDS="~amd64 ~x86"
+IUSE="nls"
+# dev-java/ant-core is automatically added due to java-ant-2.eclass
+DEPEND=">=dev-java/bcprov-1.50
+		dev-java/eclipse-ecj:*
+		dev-java/jakarta-jstl
+		dev-java/java-service-wrapper
+		dev-java/jrobin
+		dev-java/slf4j-api
+		dev-libs/gmp:*
+		nls? ( sys-devel/gettext )
+		>=virtual/jdk-1.6:="
+RDEPEND="${DEPEND} >=virtual/jre-1.6"
 
-EANT_BUILD_TARGET=pkg
+EANT_BUILD_TARGET="pkg"
+EANT_GENTOO_CLASSPATH="jakarta-jstl,java-service-wrapper,jrobin,slf4j-api"
 
 pkg_setup() {
-	if use initscript
-		then
-		enewgroup ${PN}
-		enewuser ${PN} -1 -1 /var/lib/i2p ${PN} -m
-	fi
+	enewgroup i2p
+	enewuser i2p -1 -1 /var/lib/i2p i2p -m
+}
+
+src_unpack() {
+	unpack ${A}
+	cd "${S}"
+	java-ant_rewrite-classpath
 }
 
 src_prepare() {
+	# We're on GNU/Linux, we don't need .exe files
 	echo "noExe=true" > override.properties
-	if ! use nls
-		then
+	if ! use nls; then
 		echo "require.gettext=false" >> override.properties
 	fi
 }
 
-src_compile() {
-	java-pkg-2_src_compile
-	
-	cd "${S}/core/c/jbigi" || die "can't change to jbigi directory"
-	./build.sh dynamic || die "building native gmp library failed"
-	chmod a-x lib/libjbigi.so
-	cp "lib/libjbigi.so" "${S}/pkg-temp/" || die
-	cd "../jcpuid" || die "can't change to jcpuid directory"
-	./build.sh || die "building libjcpuid failed"
-	ls 
-	ls "lib/"
-	ls "lib/freenet/"
-	ls "lib/freenet/support/"
-	jcpuidFile=$(ls "lib/freenet/support/CPUInformation/")
-	chmod a-x "lib/freenet/support/CPUInformation/${jcpuidFile}"
-	cp "lib/freenet/support/CPUInformation/${jcpuidFile}" "${S}/pkg-temp/" || die
-	cd "../../.." || die "changing back to build dir failed"
-}
-
 src_install() {
-	i2p_home="${EROOT}/usr/share/${PN}"
-	cd pkg-temp || die "Where did our stuffs go?"
+	# Using ${D} here results in an error. Docs say use $ROOT
+	i2p_home="${ROOT}/usr/share/i2p"
+	# Patch the relevant files. This needs to be in src_install due to
+	# preinst() generating the files we're patching
+	cd pkg-temp
+	epatch "${FILESDIR}/i2p-0.9.18_fix-paths.patch"
 
-	# all our edits
-	sed -i '/appropriate\ paths/a\
-USER_HOME="$HOME"\
-SYSTEM_java_io_tmpdir="$USER_HOME/.i2p"' \
-	i2prouter || die
-	sed -e 's:%USER_HOME:$USER_HOME:g' \
-		-i i2prouter || die
-	sed -i 's:[%$]INSTALL_PATH:'${i2p_home}':g' \
-		eepget i2prouter runplain.sh wrapper.config || die
-	sed -i "s:%SYSTEM_java_io_tmpdir:$SYSTEM_java_io_tmpdir:g" \
-		i2prouter runplain.sh || die
-
-	# Just for good measure: place a warning in the default configs
-	for i in `ls *.config`
-		do
-			echo "# DO NOT EDIT!
-# Instead, put a copy into \"/var/lib/i2p/.i2p\", play with that. This file
-# will be overwritten during the next merge." > tmp
-			cat ${i} >> tmp
-			mv tmp ${i}
+	# This is ugly, but to satisfy all non-system .jar dependencies, jetty and
+	# systray4j would need to be packaged. The former would be too large a task
+	# for an unseasoned developer and systray4j hasn't been touched in over 10
+	# years. This seems to be the most pragmatic solution
+	java-pkg_jarinto "${i2p_home}/lib"
+	for i in BOB commons-el commons-logging i2p i2psnark i2ptunnel \
+		jasper-compiler jasper-runtime javax.servlet jbigi jetty* mstreaming org.mortbay.* router* \
+		sam standard streaming systray systray4j; do
+		java-pkg_dojar lib/${i}.jar
 	done
 
-	# This enables us to use listed libs from system
-	sed -e '/wrapper\.java\.classpath\.1=\/\/usr\/share\/i2p\/lib\/\*\.jar/ a\
-wrapper.java.classpath.2=//usr/share/jrobin/lib/*.jar \
-wrapper.java.classpath.3=//usr/share/jakarta-jstl/lib/*.jar \
-wrapper.java.classpath.4=//usr/share/java-service-wrapper/lib/*.jar' \
-		-e '/wrapper\.java\.library\.path\.2=\/\/usr\/share\/i2p\/lib/ a\
-wrapper.java\.library\.path.3=//usr/lib/java-service-wrapper/' \
-		-i wrapper.config || \
-		die "sed of wrapper.config failed"
+	# Set up symlinks for binaries
+	dosym /usr/bin/wrapper ${i2p_home}/i2psvc
+	dosym ${i2p_home}/i2prouter /usr/bin/i2prouter
+	dosym ${i2p_home}/eepget /usr/bin/eepget
 
-	# fix moronic autostart of lynx on i2p start
-	clientAppNum=`grep UrlLauncher clients.config | \
-					sed -e 's/clientApp\.\(.\)\.main.*/\1/'`
-	sed -e 's/\(clientApp\.'${clientAppNum}'\.startOnLoad=\)true/\1false/' \
-		-i clients.config || die "sed of clients.config failed"
-
-	# Install files to package lib
-	insinto "${i2p_home}/lib"
-	# we only install these .jars. Beware of breakage with system-wide libs!
-	for i in BOB \
-		commons-el \
-		commons-logging \
-		i2p \
-		i2psnark \
-		i2ptunnel \
-		jasper-compiler \
-		jasper-runtime \
-		javax.servlet \
-		jbigi \
-		jetty* \
-		jrobin \
-		mstreaming \
-		org.mortbay.* \
-		router* \
-		sam \
-		standard \
-		streaming \
-		systray \
-		systray4j
-	do echo "dojar "${i}"..."
-		java-pkg_dojar lib/${i}.jar || die "dojar of "${i}" failed."
-	done
-	# FIXME - setting paths is not sufficient for those, so we symlink
-	#dosym /usr/lib/commons-logging/commons-logging.jar ${i2p_home}/lib/commons-logging.jar || die
-	#dosym /usr/lib/commons-el/commons-el.jar ${i2p_home}/lib/commons-el.jar || die
-	dosym /usr/bin/wrapper ${i2p_home}/i2psvc || die
-
-	# do the symlinks to our binaries
-	dosym ${i2p_home}/i2prouter /usr/bin/i2prouter || die
-	dosym ${i2p_home}/eepget /usr/bin/eepget || die
-
-	# Install files
+	# Install main files and basic documentation
 	exeinto ${i2p_home}
 	insinto ${i2p_home}
-	doins blocklist.txt hosts.txt *.config || die
-	doexe eepget i2prouter runplain.sh || die
+	doins blocklist.txt hosts.txt *.config
+	doexe eepget i2prouter runplain.sh
+	dodoc history.txt INSTALL-headless.txt LICENSE.txt
+	doman man/*
 
-	doins *.so || die
+	# Install other directories
+	doins -r certificates docs eepsite geoip scripts
+	dodoc -r licenses
+	java-pkg_dowar webapps/*.war
 
-	dodoc history.txt INSTALL-headless.txt LICENSE.txt || die
-	doman man/* || die
-
-	# Install dirs
-	doins -r certificates docs eepsite geoip scripts || die
-	java-pkg_dowar webapps/*.war || die
-	dodoc -r licenses || die
-
-	if use initscript; then
-		doinitd "${FILESDIR}/i2p" || die
-		keepdir /var/lib/i2p
-		fperms 750 /var/lib/i2p
-		fowners i2p:i2p /var/lib/i2p
-	fi
-
-	systemd_newunit "${FILESDIR}"/${PN}.service ${PN}.service
+	# Install daemon files
+	newinitd "${FILESDIR}/i2p.initd" i2p
+	systemd_newunit "${FILESDIR}"/i2p.service i2p.service
 }
 
 pkg_postinst() {
-	if use initscript
-	then
-	#Mv old home if it exists
-		OLD_HOME="`egethome i2p`"
-		NEW_HOME="/var/lib/i2p"
-		if [[ -n "${OLD_HOME}" && "${OLD_HOME}" != "${NEW_HOME}" ]]; then
-			esethome i2p "${NEW_HOME}" || die
-			#mv "${OLD_HOME}"/* "${NEW_HOME}"/ || ewarn "Couldn't move some files to i2p's new home dir."
-			ewarn "I2P's home directory have been changed to \"${NEW_HOME}\""
-			ewarn "Be sure to move your stuff in systemwide i2p home directory"
-			ewarn "to new location like that:"
-			ewarn "# mv ${OLD_HOME}/* ${NEW_HOME}/"
-			ewarn "before the first launch of I2P after this update."
-		fi
-		einfo "Configure the router now : http://localhost:7657/index.jsp"
-		einfo "Use /etc/init.d/i2p start to start I2P"
-	else
-		einfo "Configure the router now : http://localhost:7657/index.jsp"
-		einfo "Use 'i2prouter start' to run I2P and 'i2prouter stop' to stop it."
-	fi
+	elog "Custom configuration belongs in /var/lib/i2p/.i2p/ to avoid being overwritten."
+	elog "I2P can be configured through the web interface at http://localhost:7657/index.jsp"
 }

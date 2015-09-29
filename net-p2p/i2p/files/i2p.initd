@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: $
+# $Id$
 
 depend() {
 	need net
@@ -12,8 +12,7 @@ USER_HOME="$HOME"
 JAVABINARY="/etc/java-config-2/current-system-vm/bin/java"
 INSTALL_PATH="/usr/share/i2p"
 I2P="$INSTALL_PATH"
-# I2P_CONFIG_DIR="$USER_HOME/.i2p"
-I2P_CONFIG_DIR="$USER_HOME"
+I2P_CONFIG_DIR="$USER_HOME/.i2p"
 SYSTEM_java_io_tmpdir="$I2P_CONFIG_DIR"
 I2PTEMP="$SYSTEM_java_io_tmpdir"
 LOGFILE="$I2P_CONFIG_DIR/wrapper.log"
