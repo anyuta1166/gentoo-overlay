@@ -55,7 +55,7 @@ src_install() {
 	# Patch the relevant files. This needs to be in src_install due to
 	# preinst() generating the files we're patching
 	cd pkg-temp
-	epatch "${FILESDIR}/i2p-0.9.18_fix-paths.patch"
+	epatch "${FILESDIR}/i2p-0.9.19_fix-paths.patch"
 
 	# This is ugly, but to satisfy all non-system .jar dependencies, jetty and
 	# systray4j would need to be packaged. The former would be too large a task
