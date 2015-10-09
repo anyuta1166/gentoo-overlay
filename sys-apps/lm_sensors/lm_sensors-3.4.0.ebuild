@@ -12,7 +12,7 @@ SRC_URI="http://dl.lm-sensors.org/lm-sensors/releases/${P}.tar.bz2"
 
 LICENSE="GPL-2 LGPL-2.1"
 SLOT="0"
-KEYWORDS="~alpha ~amd64 ~arm ~mips ~ppc ~sparc ~x86 ~amd64-linux ~arm-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~arm-linux ~x86-linux"
 IUSE="sensord static-libs"
 
 RDEPEND="
@@ -31,7 +31,7 @@ WARNING_I2C_CHARDEV="sensors-detect requires CONFIG_I2C_CHARDEV to be enabled."
 WARNING_I2C="${PN} requires CONFIG_I2C to be enabled for most sensors."
 
 src_prepare() {
-	epatch "${FILESDIR}"/${P}-sensors-detect-gentoo.patch
+	epatch "${FILESDIR}"/${PN}-3.3.5-sensors-detect-gentoo.patch
 
 	use sensord && { sed -i -e 's:^#\(PROG_EXTRA.*\):\1:' Makefile || die; }
 
