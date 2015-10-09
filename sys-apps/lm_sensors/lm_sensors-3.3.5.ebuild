@@ -63,7 +63,7 @@ src_install() {
 		LIBDIR="${EPREFIX}/usr/$(get_libdir)" \
 		install
 
-	newinitd "${FILESDIR}"/${PN}-3-init.d-2 ${PN}
+	newinitd "${FILESDIR}"/${PN}-3-init.d-r1 ${PN}
 	systemd_dounit prog/init/lm_sensors.service
 
 	newinitd "${FILESDIR}"/fancontrol-init.d-2 fancontrol
