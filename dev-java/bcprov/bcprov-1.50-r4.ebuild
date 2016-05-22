@@ -1,4 +1,4 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -16,16 +16,12 @@ SRC_URI="http://www.bouncycastle.org/download/${MY_P}.tar.gz"
 
 LICENSE="BSD"
 SLOT="0"
-KEYWORDS="amd64 ppc ppc64 x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-macos"
-
-CDEPEND=""
+KEYWORDS="amd64 ppc64 x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~x64-macos"
 
 DEPEND=">=virtual/jdk-1.6
-	app-arch/unzip
-	${CDEPEND}"
+	app-arch/unzip"
 
-RDEPEND=">=virtual/jre-1.6
-	${CDEPEND}"
+RDEPEND=">=virtual/jre-1.6"
 
 S="${WORKDIR}/${MY_P}"
 
