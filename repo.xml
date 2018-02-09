@@ -6,8 +6,8 @@
 		<description>Vampik's Gentoo overlay</description>
 		<homepage>https://github.com/vampik/gentoo-overlay</homepage>
 		<owner type="person">
-			<email>admin@vampik.ru</email>
+			<email>vamp@vampik.ru</email>
 		</owner>
-		<source type="git">git://github.com/vampik/gentoo-overlay.git</source>
+		<source type="git">https://github.com/vampik/gentoo-overlay.git</source>
 	</repo>
 </repositories>
