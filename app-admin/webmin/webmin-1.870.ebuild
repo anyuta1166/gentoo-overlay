@@ -1,6 +1,5 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI="5"
 
@@ -94,7 +93,7 @@ src_install() {
 
 	# Copy our own setup script to installation folder
 	insinto /usr/libexec/webmin
-	newins "${FILESDIR}"/gentoo-setup-${PV} gentoo-setup.sh
+	newins "${FILESDIR}"/gentoo-setup gentoo-setup.sh
 	fperms 0744 /usr/libexec/webmin/gentoo-setup.sh
 
 	# This is here if we ever want in future ebuilds to add some specific
@@ -106,10 +105,10 @@ src_install() {
 	# has this file in root dir too.
 	#newins "${FILESDIR}/miniserv-conf" miniserv-conf
 
-	# Create the var dir and keep
+	# Create the log dir and keep
 	diropts -m0700
-	dodir /var/webmin
-	keepdir /var/webmin
+	dodir /var/log/webmin
+	keepdir /var/log/webmin
 
 	# Create the init.d file and put the neccessary variables there
 	newinitd "${FILESDIR}"/init.d.webmin webmin
@@ -154,10 +153,10 @@ pkg_preinst() {
 }
 
 pkg_postinst() {
-	# Run pkg_config phase first - non interactively
+	# Run webmin_config first - non interactively
 	export INTERACTIVE="no"
-	pkg_config
-	# Every next time pkg_config should be interactive
+	webmin_config
+	# Every next time webmin_config should be interactive
 	INTERACTIVE="yes"
 
 	ewarn
@@ -200,6 +199,10 @@ pkg_postrm() {
 }
 
 pkg_config(){
+	webmin_config
+}
+
+webmin_config(){
 	# First stop service if running
 	ebegin "Stopping any running Webmin instance"
 	if systemd_is_booted ; then
@@ -279,7 +282,7 @@ pkg_config(){
 	# Ensure all paths passed to the setup script use EROOT
 	export wadir="${EROOT}usr/libexec/webmin"
 	export config_dir="${EROOT}etc/webmin"
-	export var_dir="${EROOT}var/webmin"
+	export var_dir="${EROOT}var/log/webmin"
 	export tempdir="${T}"
 	export pidfile="${EROOT}var/run/webmin.pid"
 	export perl="$( which perl )"
