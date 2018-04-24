@@ -36,6 +36,7 @@ RDEPEND="
 "
 
 src_prepare() {
+	default
 	sed -i -e "s:/usr/bin/ifplugd:/usr/sbin/ifplugd:" \
 		"services/netctl-ifplugd@.service" || die
 }
