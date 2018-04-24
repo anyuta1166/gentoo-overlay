@@ -1,13 +1,13 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 inherit bash-completion-r1 eutils
 
 if [[ ${PV} = *9999* ]]; then
 	EGIT_REPO_URI="git://projects.archlinux.org/netctl.git"
-	inherit git-2
+	inherit git-r3
 	DEPEND="app-text/asciidoc"
 else
 	SRC_URI="https://sources.archlinux.org/other/packages/${PN}/${P}.tar.xz"
