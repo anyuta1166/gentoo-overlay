@@ -3,6 +3,8 @@
 
 EAPI=6
 
+inherit systemd
+
 DESCRIPTION="Recursive DNS Servers discovery Daemon (rdnssd) for IPv6"
 HOMEPAGE="https://www.remlab.net/ndisc6/"
 SRC_URI="https://www.remlab.net/files/${PN}/${P}.tar.bz2"

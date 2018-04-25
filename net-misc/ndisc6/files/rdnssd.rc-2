@@ -10,6 +10,7 @@ depend() {
 
 start() {
 	ebegin "Starting rdnssd"
+	checkpath -d -m 0755 -o nobody:root /var/run/rdnssd
 	start-stop-daemon --start --quiet --exec /usr/sbin/rdnssd -- ${RDNSSD_OPTS}
 	eend $?
 }
