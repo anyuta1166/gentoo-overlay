@@ -25,6 +25,8 @@ src_install() {
 	emake DESTDIR="${D}" install || die
 	newinitd "${FILESDIR}"/rdnssd.rc-2 rdnssd || die
 	newconfd "${FILESDIR}"/rdnssd.conf rdnssd || die
+	systemd_dounit "${FILESDIR}/${PN}".service
+	systemd_newtmpfilesd "${FILESDIR}/${PN}".tmpfiles.conf "${PN}".conf
 	exeinto /etc/rdnssd
 	newexe "${FILESDIR}"/resolvconf-2 resolvconf || die
 	dodoc AUTHORS ChangeLog NEWS README || die
