@@ -1,7 +1,7 @@
 # Copyright 1999-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=5
+EAPI=6
 
 DESCRIPTION="Recursive DNS Servers discovery Daemon (rdnssd) for IPv6"
 HOMEPAGE="https://www.remlab.net/ndisc6/"
@@ -17,14 +17,15 @@ DEPEND="dev-lang/perl
 RDEPEND=""
 
 src_configure() {
-	econf $(use_enable debug assert)
+	econf $(use_enable debug assert) \
+		--localstatedir="${EPREFIX}/var"
 }
 
 src_install() {
 	emake DESTDIR="${D}" install || die
-	newinitd "${FILESDIR}"/rdnssd.rc-1 rdnssd || die
+	newinitd "${FILESDIR}"/rdnssd.rc-2 rdnssd || die
 	newconfd "${FILESDIR}"/rdnssd.conf rdnssd || die
 	exeinto /etc/rdnssd
-	newexe "${FILESDIR}"/resolvconf-1 resolvconf || die
+	newexe "${FILESDIR}"/resolvconf-2 resolvconf || die
 	dodoc AUTHORS ChangeLog NEWS README || die
 }

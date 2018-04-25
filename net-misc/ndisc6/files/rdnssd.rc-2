@@ -16,7 +16,7 @@ start() {
 
 stop() {
 	ebegin "Stopping rdnssd"
-	start-stop-daemon --stop --quiet --pidfile /var/lib/run/rdnssd.pid
+	start-stop-daemon --stop --quiet --pidfile /var/run/rdnssd.pid
 	if [ -x /sbin/resolvconf ]; then 
  		/sbin/resolvconf -f -d rdnssd || true
  	fi
