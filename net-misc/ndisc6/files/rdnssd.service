@@ -5,6 +5,7 @@ Requires=network.target
 
 [Service]
 ExecStart=/usr/sbin/rdnssd -f -H /etc/rdnssd/resolvconf
+ExecStopPost=/bin/sh -c "if [ -x /sbin/resolvconf ] ; then /sbin/resolvconf -f -d rdnssd || true ; fi"
 
 [Install]
 WantedBy=multi-user.target
