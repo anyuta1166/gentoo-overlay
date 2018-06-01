@@ -2,6 +2,9 @@
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
   <!-- maintainer-needed -->
+  <use>
+    <flag name="ipsec">Generate keys suitable for both OpenVPN and IPsec</flag>
+  </use>
   <upstream>
     <remote-id type="github">OpenVPN/easy-rsa</remote-id>
   </upstream>
