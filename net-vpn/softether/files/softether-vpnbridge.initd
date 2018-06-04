@@ -7,13 +7,13 @@ depend() {
 }
 
 start() {
-	ebegin "Starting SoftEther VPN bridge"
-	/opt/softether/vpnbridge/vpnbridge start
+	ebegin "Starting SoftEther VPN Bridge"
+	/opt/softether/vpnbridge/vpnbridge start >/dev/null 2>&1
 	eend $?
 }
 
 stop() {
-	ebegin "Stopping SoftEther VPN bridge"
-	/opt/softether/vpnbridge/vpnbridge stop
+	ebegin "Stopping SoftEther VPN Bridge"
+	/opt/softether/vpnbridge/vpnbridge stop >/dev/null 2>&1
 	eend $?
 }

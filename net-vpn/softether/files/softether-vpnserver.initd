@@ -7,13 +7,13 @@ depend() {
 }
 
 start() {
-	ebegin "Starting SoftEther VPN server"
-	/opt/softether/vpnserver/vpnserver start
+	ebegin "Starting SoftEther VPN Server"
+	/opt/softether/vpnserver/vpnserver start >/dev/null 2>&1
 	eend $?
 }
 
 stop() {
-	ebegin "Stopping SoftEther VPN server"
-	/opt/softether/vpnserver/vpnserver stop
+	ebegin "Stopping SoftEther VPN Server"
+	/opt/softether/vpnserver/vpnserver stop >/dev/null 2>&1
 	eend $?
 }
