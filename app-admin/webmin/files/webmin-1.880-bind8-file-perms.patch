@@ -1,0 +1,24 @@
+diff -Nru webmin-1.880.orig/bind8/bind8-lib.pl webmin-1.880/bind8/bind8-lib.pl
+--- webmin-1.880.orig/bind8/bind8-lib.pl	2018-03-04 09:39:14.000000000 +0300
++++ webmin-1.880/bind8/bind8-lib.pl	2018-06-11 21:19:52.979000000 +0300
+@@ -1476,15 +1476,15 @@
+ {
+ my ($file, $slave) = @_;
+ my ($user, $group, $perms);
++if ($file =~ /^(.*)\/([^\/]+)$/) {
++	# Match parent dir
++	my @st = stat($1);
++	($perms, $user, $group) = ($st[2] & 0666, $st[4], $st[5]);
++	}
+ if ($config{'file_owner'}) {
+ 	# From config
+ 	($user, $group) = split(/:/, $config{'file_owner'});
+ 	}
+-elsif ($file =~ /^(.*)\/([^\/]+)$/) {
+-	# Match parent dir
+-	my @st = stat($1);
+-	($user, $group) = ($st[4], $st[5]);
+-	}
+ if ($slave && $config{'slave_file_perms'}) {
+ 	$perms = oct($config{'slave_file_perms'});
+ 	}
