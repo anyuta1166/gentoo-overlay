@@ -81,14 +81,18 @@ src_install() {
 		doins -r "sql/updates_and_fixes"
 	fi
 
+	dodoc CHANGELOG
+	docinto "ts3server"
+	dodoc "doc"/*.txt
+
 	if use doc; then
 		local HTML_DOCS=( "doc/serverquery/." )
 
 		docinto "serverquery"
 		dodoc "serverquerydocs"/*.txt
+		docompress -x "/usr/share/doc/${PF}/serverquery"
+		dosym "../../usr/share/doc/${PF}/serverquery" "/opt/teamspeak3-server/serverquerydocs"
 
-		docinto "ts3server"
-		dodoc "doc"/*.txt
 	fi
 
 	if use tsdns; then
