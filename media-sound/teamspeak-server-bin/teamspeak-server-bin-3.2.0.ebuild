@@ -116,10 +116,16 @@ src_install() {
 	fi
 	doenvd "${T}"/99teamspeak3-server
 
-	fowners -R teamspeak:teamspeak "/etc/teamspeak3-server" "/opt/teamspeak3-server" "/var/log/teamspeak3-server"
+	fowners -R teamspeak:teamspeak /{etc,opt,var/log}/teamspeak3-server
+	fperms 0700 /{etc,var/log}/teamspeak3-server
+	fperms 0755 /opt/teamspeak3-server
 }
 
 pkg_postinst() {
+	# Fix ownerships and permissions
+	chown -R teamspeak:teamspeak "${ROOT%/}"/{etc,opt,var/log}/teamspeak3-server
+	chmod 0700 "${ROOT%/}"/{etc,var/log}/teamspeak3-server
+	chmod 0755 "${ROOT%/}"/opt/teamspeak3-server
 	elog "If you have a Non-Profit License (NPL),"
 	elog "place it in /opt/teamspeak3-server as licensekey.dat."
 }
