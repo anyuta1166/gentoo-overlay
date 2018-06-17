@@ -26,9 +26,9 @@ else
 	fi
 
 	echo "[+] No secret passed. Will generate $SECRET_COUNT random ones."
-	SECRET="$(dd if=/dev/urandom bs=16 count=1 2>&1 | od -tx1  | head -n1 | tail -c +9 | tr -d ' ')"
+	SECRET="$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | od -An -tx1 | tr -d ' ')"
 	for pass in $(seq 2 $SECRET_COUNT); do
-		SECRET="$SECRET,$(dd if=/dev/urandom bs=16 count=1 2>&1 | od -tx1  | head -n1 | tail -c +9 | tr -d ' ')"
+		SECRET="$SECRET,$(dd if=/dev/urandom bs=16 count=1 2>/dev/null | od -An -tx1 | tr -d ' ')"
 	done
 fi
 
