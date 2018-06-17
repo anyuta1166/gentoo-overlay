@@ -1,0 +1,6 @@
+[Unit]
+Description=Update MTProxy configuration
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl try-restart mtproxy.service
