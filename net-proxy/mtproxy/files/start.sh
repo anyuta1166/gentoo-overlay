@@ -26,9 +26,9 @@ else
 	fi
 
 	echo "[+] No secret passed. Will generate $SECRET_COUNT random ones."
-	SECRET="$(openssl rand -hex 16)"
+	SECRET="$(dd if=/dev/urandom bs=16 count=1 2>&1 | od -tx1  | head -n1 | tail -c +9 | tr -d ' ')"
 	for pass in $(seq 2 $SECRET_COUNT); do
-		SECRET="$SECRET,$(openssl rand -hex 16)"
+		SECRET="$SECRET,$(dd if=/dev/urandom bs=16 count=1 2>&1 | od -tx1  | head -n1 | tail -c +9 | tr -d ' ')"
 	done
 fi
 
