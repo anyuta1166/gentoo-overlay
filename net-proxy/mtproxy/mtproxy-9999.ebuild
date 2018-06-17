@@ -42,6 +42,8 @@ src_install() {
 	dosbin objs/bin/mtproto-proxy
 	exeinto "/usr/libexec/${PN}"
 	doexe "${FILESDIR}/start.sh"
+	insinto /etc
+	doins "${FILESDIR}/${PN}.conf"
 	keepdir "/var/lib/${PN}"
 	systemd_dounit "${FILESDIR}/${PN}.service"
 	systemd_dounit "${FILESDIR}/${PN}-config.service"
