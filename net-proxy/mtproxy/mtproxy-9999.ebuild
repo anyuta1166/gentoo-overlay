@@ -41,7 +41,7 @@ src_compile() {
 src_install() {
 	dosbin objs/bin/mtproto-proxy
 	exeinto "/usr/libexec/${PN}"
-	doexe "${FILESDIR}/${PN}.sh"
+	newexe "${FILESDIR}/${PN}.sh" "${PN}"
 	insinto /etc
 	doins "${FILESDIR}/${PN}.conf"
 	keepdir "/var/lib/${PN}"
