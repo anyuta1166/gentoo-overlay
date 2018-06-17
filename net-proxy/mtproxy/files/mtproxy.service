@@ -4,14 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-Environment="LOCAL_PORT=8888"
-Environment="HTTP_PORTS=443"
-Environment="SECRET=0123456789abcdef0123456789abcdef"
-Environment="PARAMS=-M 1"
-WorkingDirectory=/var/lib/mtproxy
-ExecStartPre=/usr/bin/curl -m 15 -s https://core.telegram.org/getProxySecret -o proxy-secret
-ExecStartPre=/usr/bin/curl -m 15 -s https://core.telegram.org/getProxyConfig -o proxy-multi.conf
-ExecStart=/usr/sbin/mtproto-proxy -u nobody -p ${LOCAL_PORT} -H ${HTTP_PORTS} -S ${SECRET} --aes-pwd proxy-secret proxy-multi.conf $PARAMS
+ExecStart=/usr/libexec/mtproxy/start.sh
 Restart=on-failure
 RestartSec=5
 

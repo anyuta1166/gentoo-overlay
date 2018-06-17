@@ -40,9 +40,10 @@ src_compile() {
 
 src_install() {
 	dosbin objs/bin/mtproto-proxy
+	exeinto "/usr/libexec/${PN}"
+	doexe "${FILESDIR}/start.sh"
 	keepdir "/var/lib/${PN}"
 	systemd_dounit "${FILESDIR}/${PN}.service"
-	systemd_install_serviced "${FILESDIR}/${PN}.service.conf"
 	systemd_dounit "${FILESDIR}/${PN}-config.service"
 	systemd_dounit "${FILESDIR}/${PN}-config.timer"
         einstalldocs
