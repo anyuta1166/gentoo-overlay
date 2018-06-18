@@ -2,7 +2,7 @@
 Description=Sensor information logging daemon
 
 [Service]
-PIDFile=/var/run/sensord.pid
+PIDFile=/run/sensord.pid
 ExecStart=/usr/sbin/sensord
 
 [Install]

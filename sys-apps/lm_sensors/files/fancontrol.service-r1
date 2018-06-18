@@ -2,7 +2,7 @@
 Description=Fan control daemon
 
 [Service]
-PIDFile=/var/run/fancontrol.pid
+PIDFile=/run/fancontrol.pid
 ExecStart=/usr/sbin/fancontrol
 
 [Install]
