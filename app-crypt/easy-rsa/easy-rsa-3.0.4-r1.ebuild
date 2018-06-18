@@ -24,8 +24,8 @@ RDEPEND="${DEPEND}
 S="${WORKDIR}/${MY_P}"
 
 PATCHES=(
-        "${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
-        "${FILESDIR}/${PN}-3.0.4-p12-nopass-friendly-name.patch"
+	"${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
+	"${FILESDIR}/${PN}-3.0.4-p12-nopass-friendly-name.patch"
 )
 
 src_prepare() {

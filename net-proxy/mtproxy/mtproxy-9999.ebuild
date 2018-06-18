@@ -9,10 +9,9 @@ if [[ ${PV} = *9999* ]]; then
 	EGIT_REPO_URI="https://github.com/TelegramMessenger/MTProxy.git"
 	inherit git-r3
 else
-        SRC_URI=""
-        KEYWORDS="~amd64 ~x86"
+	SRC_URI=""
+	KEYWORDS="~amd64 ~x86"
 fi
-
 
 DESCRIPTION="Simple MT-Proto proxy"
 HOMEPAGE="https://github.com/TelegramMessenger/MTProxy"
@@ -21,7 +20,7 @@ LICENSE="GPL-2"
 SLOT="0"
 IUSE=""
 
-DEPEND="dev-libs/openssl
+DEPEND="dev-libs/openssl:0=
 	sys-libs/zlib"
 RDEPEND="${DEPEND}
 	net-misc/curl"
@@ -29,14 +28,13 @@ RDEPEND="${DEPEND}
 DOCS=( README.md )
 
 PATCHES=(
-        "${FILESDIR}/${PN}-9999-compile-flags.patch"
+	"${FILESDIR}/${PN}-9999-compile-flags.patch"
 )
 
 src_compile() {
-        tc-export CC AR
+	tc-export CC AR
 	default
 }
-
 
 src_install() {
 	dosbin objs/bin/mtproto-proxy
@@ -48,5 +46,5 @@ src_install() {
 	systemd_dounit "${FILESDIR}/${PN}.service"
 	systemd_dounit "${FILESDIR}/${PN}-config.service"
 	systemd_dounit "${FILESDIR}/${PN}-config.timer"
-        einstalldocs
+	einstalldocs
 }

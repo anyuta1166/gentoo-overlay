@@ -17,9 +17,9 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="debug"
 
-RDEPEND="dev-libs/openssl
-	sys-libs/ncurses
-	sys-libs/readline
+RDEPEND="dev-libs/openssl:0=
+	sys-libs/ncurses:0=
+	sys-libs/readline:0=
 	sys-libs/zlib"
 DEPEND="${RDEPEND}"
 
