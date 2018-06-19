@@ -16,7 +16,7 @@ fi
 DESCRIPTION="Simple MT-Proto proxy"
 HOMEPAGE="https://github.com/TelegramMessenger/MTProxy"
 
-LICENSE="GPL-2"
+LICENSE="GPL-2+ LGPL-2+"
 SLOT="0"
 IUSE=""
 
