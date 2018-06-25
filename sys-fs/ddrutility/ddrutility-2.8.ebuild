@@ -9,10 +9,12 @@ DESCRIPTION="LINUX based utility for use with gnuddrescue to aid with data recov
 HOMEPAGE="https://sourceforge.net/projects/ddrutility/"
 SRC_URI="mirror://sourceforge/${PN}/${P}.tar.gz"
 
-LICENSE="GPL-2"
+LICENSE="GPL-2+"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE=""
+
+RDEPEND="app-forensics/sleuthkit"
 
 DOCS=( AUTHORS ChangeLog ddrutility.txt NEWS README THANKS )
 HTML_DOCS=( ddrutility.html )
