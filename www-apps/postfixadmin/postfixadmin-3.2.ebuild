@@ -53,16 +53,17 @@ src_install() {
 		newins VIRTUAL_VACATION/vacation.pl vacation.pl-${SLOT}
 		fowners vacation:vacation /var/spool/vacation/vacation.pl-${SLOT}
 		fperms 770 /var/spool/vacation/vacation.pl-${SLOT}
-		dodoc VIRTUAL_VACATION/FILTER_README
-		newdoc VIRTUAL_VACATION/INSTALL.TXT VIRTUAL_VACATION_INSTALL.TXT
-		rm -r VIRTUAL_VACATION/{vacation.pl,INSTALL.TXT,tests,FILTER_README} || die
+		rm -r VIRTUAL_VACATION/{vacation.pl,tests} || die
+		dodoc -r VIRTUAL_VACATION
+		rm -rf VIRTUAL_VACATION/ || die
 	fi
 
 	insinto /usr/share/doc/${PF}/
 	doins -r ADDITIONS
 
-	local docs="DOCUMENTS/*.txt INSTALL.TXT CHANGELOG.TXT"
+	local docs="DOCUMENTS/*.txt DOCUMENTS/*.md INSTALL.TXT CHANGELOG.TXT README.md"
 	dodoc ${docs}
+	docompress -x "/usr/share/doc/${PF}/ADDITIONS"
 
 	rm -rf ${docs} DOCUMENTS/ GPL-LICENSE.TXT LICENSE.TXT debian/ tests/ ADDITIONS/
 
