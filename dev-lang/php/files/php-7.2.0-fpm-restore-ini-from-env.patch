@@ -1,0 +1,32 @@
+diff -Naur php-7.2.0.orig/sapi/fpm/fpm/fpm_main.c php-7.2.0/sapi/fpm/fpm/fpm_main.c
+--- php-7.2.0.orig/sapi/fpm/fpm/fpm_main.c	2017-11-12 18:58:39.638983324 +0100
++++ php-7.2.0/sapi/fpm/fpm/fpm_main.c	2017-11-12 18:58:50.979852288 +0100
+@@ -1434,7 +1434,6 @@
+ 	int *mode = (int *)arg;
+ 	char *key;
+ 	char *value = NULL;
+-	struct key_value_s kv;
+ 
+ 	if (!mode || !arg1) return;
+ 
+@@ -1445,7 +1444,7 @@
+ 
+ 	key = Z_STRVAL_P(arg1);
+ 
+-	if (!key || strlen(key) < 1) {
++	if (!key || Z_STRLEN_P(arg1) < 1) {
+ 		zlog(ZLOG_ERROR, "Passing INI directive through FastCGI: empty key");
+ 		return;
+ 	}
+@@ -1459,10 +1458,7 @@
+ 		return;
+ 	}
+ 
+-	kv.key = key;
+-	kv.value = value;
+-	kv.next = NULL;
+-	if (fpm_php_apply_defines_ex(&kv, *mode) == -1) {
++	if (zend_alter_ini_entry(Z_STR_P(arg1), Z_STR_P(arg2), *mode, PHP_INI_STAGE_HTACCESS) == FAILURE) {
+ 		zlog(ZLOG_ERROR, "Passing INI directive through FastCGI: unable to set '%s'", key);
+ 	}
+ }

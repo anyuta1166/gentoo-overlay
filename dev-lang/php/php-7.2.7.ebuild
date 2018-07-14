@@ -151,6 +151,8 @@ REQUIRED_USE="
 "
 PATCHES=(
 	"${FILESDIR}/php-freetype-2.9.1.patch"
+	"${FILESDIR}/php-7.2.0-fpm-php_values-from-env.patch"
+	"${FILESDIR}/php-7.2.0-fpm-restore-ini-from-env.patch"
 )
 
 PHP_MV="$(get_major_version)"
