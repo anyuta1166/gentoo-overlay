@@ -38,6 +38,10 @@ DEPEND="${RDEPEND}
 	test? ( dev-libs/check )
 	"
 
+PATCHES=(
+	"${FILESDIR}"/${PN}-4.8.21-sftp_ip.patch
+)
+
 S=${WORKDIR}/${MY_P}
 
 pkg_pretend() {
