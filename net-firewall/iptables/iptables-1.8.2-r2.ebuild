@@ -1,12 +1,12 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="5"
+EAPI=6
 
 # Force users doing their own patches to install their own tools
 AUTOTOOLS_AUTO_DEPEND=no
 
-inherit eutils multilib systemd toolchain-funcs autotools flag-o-matic
+inherit multilib systemd toolchain-funcs autotools flag-o-matic
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
 HOMEPAGE="https://www.netfilter.org/projects/iptables/"
@@ -24,7 +24,7 @@ COMMON_DEPEND="
 	netlink? ( net-libs/libnfnetlink )
 	nftables? (
 		>=net-libs/libmnl-1.0:0=
-		>=net-libs/libnftnl-1.0.5:0=
+		>=net-libs/libnftnl-1.1.1:0=
 	)
 	pcap? ( net-libs/libpcap )
 "
@@ -38,10 +38,7 @@ DEPEND="${COMMON_DEPEND}
 	)
 "
 RDEPEND="${COMMON_DEPEND}
-	nftables? (
-		!<net-firewall/ebtables-2.0.10.4-r2
-		!net-misc/ethertypes
-	)
+	nftables? ( net-misc/ethertypes )
 "
 
 src_prepare() {
@@ -49,7 +46,7 @@ src_prepare() {
 	rm -f include/linux/{kernel,types}.h
 
 	# Only run autotools if user patched something
-	epatch_user && eautoreconf || elibtoolize
+	eapply_user && eautoreconf || elibtoolize
 }
 
 src_configure() {
@@ -64,16 +61,18 @@ src_configure() {
 		-e "/nfconntrack=[01]/s:=[01]:=$(usex conntrack 1 0):" \
 		configure || die
 
-	econf \
-		--sbindir="${EPREFIX}/sbin" \
-		--libexecdir="${EPREFIX}/$(get_libdir)" \
-		--enable-devel \
-		--enable-shared \
-		$(use_enable nftables) \
-		$(use_enable pcap bpf-compiler) \
-		$(use_enable pcap nfsynproxy) \
-		$(use_enable static-libs static) \
+	local myeconfargs=(
+		--sbindir="${EPREFIX}/sbin"
+		--libexecdir="${EPREFIX}/$(get_libdir)"
+		--enable-devel
+		--enable-shared
+		$(use_enable nftables)
+		$(use_enable pcap bpf-compiler)
+		$(use_enable pcap nfsynproxy)
+		$(use_enable static-libs static)
 		$(use_enable ipv6)
+	)
+	econf "${myeconfargs[@]}"
 }
 
 src_compile() {
@@ -99,23 +98,34 @@ src_install() {
 	doins include/iptables/internal.h
 
 	keepdir /var/lib/iptables
-	newinitd "${FILESDIR}"/${PN}.init iptables
-	newconfd "${FILESDIR}"/${PN}-1.4.13.confd iptables
+	newinitd "${FILESDIR}"/${PN}-r2.init iptables
+	newconfd "${FILESDIR}"/${PN}-r1.confd iptables
 	if use ipv6 ; then
 		keepdir /var/lib/ip6tables
-		newinitd "${FILESDIR}"/iptables.init ip6tables
-		newconfd "${FILESDIR}"/ip6tables-1.4.13.confd ip6tables
+		dosym iptables /etc/init.d/ip6tables
+		newconfd "${FILESDIR}"/ip6tables-r1.confd ip6tables
 	fi
 
-	systemd_dounit "${FILESDIR}"/systemd/iptables.service
-	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf
+	if use nftables; then
+		# Bug 647458
+		rm "${ED%/}"/etc/ethertypes || die
+
+		# Bug 660886
+		rm "${ED%/}"/sbin/{arptables,ebtables} || die
+
+		# Bug 669894
+		rm "${ED%/}"/sbin/ebtables-{save,restore} || die
+	fi
+
+	systemd_newunit "${FILESDIR}"/systemd/iptables-r2.service iptables.service
+	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf iptables.service
 	if use ipv6 ; then
-		systemd_dounit "${FILESDIR}"/systemd/ip6tables.service
-		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables.service.conf
+		systemd_newunit "${FILESDIR}"/systemd/ip6tables-r2.service ip6tables.service
+		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables.service.conf ip6tables.service
 	fi
 
 	# Move important libs to /lib #332175
 	gen_usr_ldscript -a ip{4,6}tc iptc xtables
 
-	prune_libtool_files
+	find "${ED}" -name "*.la" -delete || die
 }

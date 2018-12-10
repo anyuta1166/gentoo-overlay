@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -6,11 +6,11 @@ EAPI=6
 # Force users doing their own patches to install their own tools
 AUTOTOOLS_AUTO_DEPEND=no
 
-inherit ltprune multilib systemd toolchain-funcs autotools flag-o-matic
+inherit multilib systemd toolchain-funcs autotools flag-o-matic
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
-HOMEPAGE="http://www.netfilter.org/projects/iptables/"
-SRC_URI="http://www.netfilter.org/projects/iptables/files/${P}.tar.bz2"
+HOMEPAGE="https://www.netfilter.org/projects/iptables/"
+SRC_URI="https://www.netfilter.org/projects/iptables/files/${P}.tar.bz2"
 
 LICENSE="GPL-2"
 # Subslot tracks libxtables as that's the one other packages generally link
@@ -24,12 +24,13 @@ COMMON_DEPEND="
 	netlink? ( net-libs/libnfnetlink )
 	nftables? (
 		>=net-libs/libmnl-1.0:0=
-		>=net-libs/libnftnl-1.0.5:0=
+		>=net-libs/libnftnl-1.1.1:0=
 	)
 	pcap? ( net-libs/libpcap )
 "
 DEPEND="${COMMON_DEPEND}
 	virtual/os-headers
+	>=sys-kernel/linux-headers-4.4:0
 	virtual/pkgconfig
 	nftables? (
 		sys-devel/flex
@@ -37,10 +38,7 @@ DEPEND="${COMMON_DEPEND}
 	)
 "
 RDEPEND="${COMMON_DEPEND}
-	nftables? (
-		!<net-firewall/ebtables-2.0.10.4-r2
-		!net-misc/ethertypes
-	)
+	nftables? ( net-misc/ethertypes )
 "
 
 src_prepare() {
@@ -108,6 +106,17 @@ src_install() {
 		newconfd "${FILESDIR}"/ip6tables-1.4.13.confd ip6tables
 	fi
 
+	if use nftables; then
+		# Bug 647458
+		rm "${ED%/}"/etc/ethertypes || die
+
+		# Bug 660886
+		rm "${ED%/}"/sbin/{arptables,ebtables} || die
+
+		# Bug 669894
+		rm "${ED%/}"/sbin/ebtables-{save,restore} || die
+	fi
+
 	systemd_newunit "${FILESDIR}"/systemd/iptables-1.6.2.service iptables.service
 	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf
 	if use ipv6 ; then
@@ -118,5 +127,5 @@ src_install() {
 	# Move important libs to /lib #332175
 	gen_usr_ldscript -a ip{4,6}tc iptc xtables
 
-	prune_libtool_files
+	find "${ED}" -name "*.la" -delete || die
 }
