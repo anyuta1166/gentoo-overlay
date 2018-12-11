@@ -111,6 +111,9 @@ src_install() {
 }
 
 pkg_postinst() {
+	# Fix ownerships and permissions
+	chown teamspeak:teamspeak "${ROOT%/}"/{etc,opt,var/log}/teamspeak3-server
+	chmod 0700 "${ROOT%/}"/{etc,var/log}/teamspeak3-server
 	elog "If you have a Non-Profit License (NPL),"
 	elog "place it in /opt/teamspeak3-server as licensekey.dat."
 	elog "Please note, that the license must be writeable by the teamspeak user."
