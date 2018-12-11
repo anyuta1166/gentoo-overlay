@@ -40,11 +40,7 @@ src_unpack() {
 }
 
 src_install() {
-	diropts -o teamspeak -g teamspeak
-	keepdir /opt/teamspeak3-server /var/log/teamspeak3-server
-
-	diropts
-	keepdir /etc/teamspeak3-server
+	keepdir /{etc,opt,var/log}/teamspeak3-server
 
 	touch "${D%/}"/opt/teamspeak3-server/.ts3server_license_accepted || die
 
@@ -110,16 +106,11 @@ src_install() {
 		dodoc tsdns/{README,USAGE}
 	fi
 
-	fowners -R teamspeak:teamspeak /{etc,opt,var/log}/teamspeak3-server
+	fowners teamspeak:teamspeak /{etc,opt,var/log}/teamspeak3-server
 	fperms 0700 /{etc,var/log}/teamspeak3-server
-	fperms 0755 /opt/teamspeak3-server
 }
 
 pkg_postinst() {
-	# Fix ownerships and permissions
-	chown -R teamspeak:teamspeak "${ROOT%/}"/{etc,opt,var/log}/teamspeak3-server
-	chmod 0700 "${ROOT%/}"/{etc,var/log}/teamspeak3-server
-	chmod 0755 "${ROOT%/}"/opt/teamspeak3-server
 	elog "If you have a Non-Profit License (NPL),"
 	elog "place it in /opt/teamspeak3-server as licensekey.dat."
 	elog "Please note, that the license must be writeable by the teamspeak user."
