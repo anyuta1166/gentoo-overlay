@@ -1,7 +1,7 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 inherit bash-completion-r1 eutils
 
@@ -65,10 +65,14 @@ pkg_postinst() {
 		optfeature "bonding support" net-misc/ifenslave
 		optfeature "dialup support" net-dialup/ppp
 	fi
-	grep -ls '^.include '  "${ROOT%/}"/etc/systemd/system/netctl@*.service | \
-	while read -r unit; do
-		profile=$(systemd-escape --unescape "${unit:27:-8}")
-		elog ":: The unit for profile '$profile' uses deprecated features."
-		elog "   Consider running: netctl reenable $(printf '%q' "$profile")"
+	for v in ${REPLACING_VERSIONS}; do
+		if ver_test "${v}" -lt "1.18" || ver_test "${v}" -ge "9999"; then
+			grep -ls '^.include '  "${ROOT%/}"/etc/systemd/system/netctl@*.service | sed -r 's/.*@([^@]*)\.service/\1/' | \
+			while read -r unit; do
+				profile=$(systemd-escape --unescape "$unit")
+				elog ":: The unit for profile '$profile' uses deprecated features."
+				elog "   Consider running: netctl reenable $(printf '%q' "$profile")"
+			done
+		fi
 	done
 }
