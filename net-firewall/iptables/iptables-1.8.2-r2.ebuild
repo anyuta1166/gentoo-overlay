@@ -118,10 +118,10 @@ src_install() {
 	fi
 
 	systemd_newunit "${FILESDIR}"/systemd/iptables-r2.service iptables.service
-	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf iptables.service
+	systemd_install_serviced "${FILESDIR}"/systemd/iptables-r1.service.conf iptables.service
 	if use ipv6 ; then
 		systemd_newunit "${FILESDIR}"/systemd/ip6tables-r2.service ip6tables.service
-		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables.service.conf ip6tables.service
+		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables-r1.service.conf ip6tables.service
 	fi
 
 	# Move important libs to /lib #332175
