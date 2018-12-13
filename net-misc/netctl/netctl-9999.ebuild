@@ -66,12 +66,12 @@ pkg_postinst() {
 		optfeature "dialup support" net-dialup/ppp
 	fi
 	for v in ${REPLACING_VERSIONS}; do
-		if ver_test "${v}" -lt "1.18" || ver_test "${v}" -ge "9999"; then
+		if ver_test "${v}" -lt "1.18" || ver_test "${v}" -eq "9999"; then
 			grep -ls '^.include '  "${ROOT%/}"/etc/systemd/system/netctl@*.service | sed -r 's/.*@([^@]*)\.service/\1/' | \
 			while read -r unit; do
 				profile=$(systemd-escape --unescape "$unit")
-				elog ":: The unit for profile '$profile' uses deprecated features."
-				elog "   Consider running: netctl reenable $(printf '%q' "$profile")"
+				elog "The unit for profile '$profile' uses deprecated features."
+				elog "Consider running: netctl reenable $(printf '%q' "$profile")"
 			done
 		fi
 	done
