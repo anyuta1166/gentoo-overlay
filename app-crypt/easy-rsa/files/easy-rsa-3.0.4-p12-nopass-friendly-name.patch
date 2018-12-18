@@ -35,7 +35,6 @@ diff -Nru EasyRSA-3.0.4.orig/easyrsa EasyRSA-3.0.4/easyrsa
 +		fi
 +
  		# export the p12:
-		# shellcheck disable=SC2086
  		"$EASYRSA_OPENSSL" pkcs12 -in "$crt_in" -inkey "$key_in" -export \
 -			-out "$pkcs_out" $pkcs_opts || die "\
 +			-name "$short_name" -out "$pkcs_out" $pkcs_opts || die "\
