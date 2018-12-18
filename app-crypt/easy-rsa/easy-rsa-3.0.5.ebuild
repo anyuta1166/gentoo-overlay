@@ -5,11 +5,9 @@ EAPI=7
 
 inherit eutils
 
-MY_P="EasyRSA-nix-${PV}"
-
 DESCRIPTION="Small RSA key management package, based on OpenSSL"
 HOMEPAGE="https://openvpn.net/"
-SRC_URI="https://github.com/OpenVPN/easy-rsa/releases/download/v${PV}/${MY_P}.tgz -> ${P}.tgz"
+SRC_URI="https://github.com/OpenVPN/easy-rsa/releases/download/v${PV}/EasyRSA-nix-${PV}.tgz -> ${P}.tgz"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -21,7 +19,7 @@ DEPEND="!libressl? ( >=dev-libs/openssl-0.9.6:0 )
 RDEPEND="${DEPEND}
 	!<net-vpn/openvpn-2.3"
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/EasyRSA-${PV}"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
