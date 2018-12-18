@@ -23,7 +23,7 @@ S="${WORKDIR}/EasyRSA-${PV}"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
-	"${FILESDIR}/${PN}-3.0.4-p12-nopass-friendly-name.patch"
+	"${FILESDIR}/${PN}-3.0.5-p12-nopass-friendly-name.patch"
 )
 
 src_prepare() {
