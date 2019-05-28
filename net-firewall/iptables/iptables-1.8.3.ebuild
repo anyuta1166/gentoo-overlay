@@ -1,7 +1,7 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=7
 
 # Force users doing their own patches to install their own tools
 AUTOTOOLS_AUTO_DEPEND=no
@@ -16,7 +16,7 @@ LICENSE="GPL-2"
 # Subslot tracks libxtables as that's the one other packages generally link
 # against and iptables changes.  Will have to revisit if other sonames change.
 SLOT="0/12"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sh ~sparc ~x86"
 IUSE="conntrack ipv6 netlink nftables pcap static-libs"
 
 COMMON_DEPEND="
@@ -24,13 +24,15 @@ COMMON_DEPEND="
 	netlink? ( net-libs/libnfnetlink )
 	nftables? (
 		>=net-libs/libmnl-1.0:0=
-		>=net-libs/libnftnl-1.1.1:0=
+		>=net-libs/libnftnl-1.1.3:0=
 	)
 	pcap? ( net-libs/libpcap )
 "
 DEPEND="${COMMON_DEPEND}
 	virtual/os-headers
 	>=sys-kernel/linux-headers-4.4:0
+"
+BDEPEND="
 	virtual/pkgconfig
 	nftables? (
 		sys-devel/flex
@@ -43,7 +45,7 @@ RDEPEND="${COMMON_DEPEND}
 
 src_prepare() {
 	# use the saner headers from the kernel
-	rm -f include/linux/{kernel,types}.h
+	rm include/linux/{kernel,types}.h || die
 
 	# Only run autotools if user patched something
 	eapply_user && eautoreconf || elibtoolize
@@ -98,34 +100,34 @@ src_install() {
 	doins include/iptables/internal.h
 
 	keepdir /var/lib/iptables
-	newinitd "${FILESDIR}"/${PN}-1.6.2.init iptables
-	newconfd "${FILESDIR}"/${PN}-1.4.13.confd iptables
+	newinitd "${FILESDIR}"/${PN}-r2.init iptables
+	newconfd "${FILESDIR}"/${PN}-r1.confd iptables
 	if use ipv6 ; then
 		keepdir /var/lib/ip6tables
-		newinitd "${FILESDIR}"/iptables-1.6.2.init ip6tables
-		newconfd "${FILESDIR}"/ip6tables-1.4.13.confd ip6tables
+		dosym iptables /etc/init.d/ip6tables
+		newconfd "${FILESDIR}"/ip6tables-r1.confd ip6tables
 	fi
 
 	if use nftables; then
 		# Bug 647458
-		rm "${ED%/}"/etc/ethertypes || die
+		rm "${ED}"/etc/ethertypes || die
 
 		# Bug 660886
-		rm "${ED%/}"/sbin/{arptables,ebtables} || die
+		rm "${ED}"/sbin/{arptables,ebtables} || die
 
 		# Bug 669894
-		rm "${ED%/}"/sbin/ebtables-{save,restore} || die
+		rm "${ED}"/sbin/ebtables-{save,restore} || die
 	fi
 
-	systemd_newunit "${FILESDIR}"/systemd/iptables-1.6.2.service iptables.service
-	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf
+	systemd_newunit "${FILESDIR}"/systemd/iptables-r2.service iptables.service
+	systemd_install_serviced "${FILESDIR}"/systemd/iptables-r1.service.conf iptables.service
 	if use ipv6 ; then
-		systemd_newunit "${FILESDIR}"/systemd/ip6tables-1.6.2.service ip6tables.service
-		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables.service.conf
+		systemd_newunit "${FILESDIR}"/systemd/ip6tables-r2.service ip6tables.service
+		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables-r1.service.conf ip6tables.service
 	fi
 
 	# Move important libs to /lib #332175
 	gen_usr_ldscript -a ip{4,6}tc iptc xtables
 
-	find "${ED}" -name "*.la" -delete || die
+	find "${ED}" -type f -name "*.la" -delete || die
 }
