@@ -1,25 +1,30 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="6"
 
-inherit linux-info systemd toolchain-funcs multilib-minimal
+inherit linux-info systemd toolchain-funcs multilib-minimal eapi7-ver
 
 DESCRIPTION="Hardware Monitoring user-space utilities"
-HOMEPAGE="https://hwmon.wiki.kernel.org/ https://github.com/groeck/lm-sensors"
+HOMEPAGE="https://hwmon.wiki.kernel.org/ https://github.com/lm-sensors/lm-sensors"
 
-COMMIT="70f7e0848410b9ca4dde7abff669bbbecbf137e0"
 MY_PN="${PN/_/-}"
 
-#SRC_URI="http://dl.lm-sensors.org/lm-sensors/releases/${P}.tar.bz2"
-SRC_URI="https://github.com/groeck/${MY_PN}/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
+if [[ "${PV}" =~ .*_p[[:digit:]]{8}.* ]] ; then
+	COMMIT="2c8cca3d6cd60121b401734c1a24cfec7daed4fc"
+	SRC_URI="https://github.com/lm-sensors/${MY_PN}/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
+	S="${WORKDIR}/${MY_PN}-${COMMIT}"
+else
+	SRC_URI="https://github.com/lm-sensors/lm-sensors/archive/V$(ver_rs 1- -).tar.gz -> ${P}.tar.gz"
+	S="${WORKDIR}/${PN/_/-}-$(ver_rs 1- -)"
+fi
 
 LICENSE="GPL-2+ LGPL-2.1"
 
 # SUBSLOT based on SONAME of libsensors.so
-SLOT="0/4.4.0"
+SLOT="0/5.0.0"
 
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~arm-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-linux"
 IUSE="contrib sensord static-libs"
 
 COMMON_DEPS="
@@ -45,8 +50,6 @@ PATCHES=( "${FILESDIR}"/${PN}-3.4.0-sensors-detect-gentoo.patch )
 
 DOCS=( CHANGES CONTRIBUTORS INSTALL README )
 DOCS+=( doc/{donations,fancontrol.txt,fan-divisors,libsensors-API.txt,progs,temperature-sensors,vid} )
-
-S="${WORKDIR}/${MY_PN}-${COMMIT}"
 
 src_prepare() {
 	default
@@ -172,7 +175,7 @@ pkg_postinst() {
 	local _new_loader='3.4.0_p20160725'
 	local _v
 	for _v in ${REPLACING_VERSIONS}; do
-		if ! version_is_at_least ${_new_loader} ${v}; then
+		if ! ver_test "${_v}" -gt "${_new_loader}"; then
 			# This is an upgrade which require migration
 
 			elog ""
