@@ -19,7 +19,7 @@ DEPEND="!libressl? ( >=dev-libs/openssl-0.9.6:0= )
 RDEPEND="${DEPEND}
 	!<net-vpn/openvpn-2.3"
 
-S="${WORKDIR}/EasyRSA-${PV}"
+S="${WORKDIR}/EasyRSA-v${PV}"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
