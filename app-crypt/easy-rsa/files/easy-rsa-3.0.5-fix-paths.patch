@@ -1,0 +1,24 @@
+diff -Nru EasyRSA-3.0.5.orig/easyrsa EasyRSA-3.0.5/easyrsa
+--- EasyRSA-3.0.5.orig/easyrsa	2018-09-15 07:21:19.000000000 +0300
++++ EasyRSA-3.0.5/easyrsa	2019-05-31 02:25:58.607462380 +0300
+@@ -1124,7 +1124,7 @@
+ 	vars=
+ 
+ 	# set up program path
+-	prog_vars="${0%/*}/vars"
++	prog_vars="$PWD/vars"
+ 	# set up PKI path
+ 	pki_vars="${EASYRSA_PKI:-$PWD/pki}/vars"
+ 
+@@ -1154,9 +1154,9 @@
+ 	fi
+ 	
+ 	# Set defaults, preferring existing env-vars if present
+-	set_var EASYRSA		"${0%/*}"
++	set_var EASYRSA		"$PWD"
+ 	set_var EASYRSA_OPENSSL	openssl
+-	set_var EASYRSA_PKI	"$PWD/pki"
++	set_var EASYRSA_PKI	"$EASYRSA/pki"
+ 	set_var EASYRSA_DN	cn_only
+ 	set_var EASYRSA_REQ_COUNTRY	"US"
+ 	set_var EASYRSA_REQ_PROVINCE	"California"
