@@ -22,13 +22,13 @@ RDEPEND="${DEPEND}
 S="${WORKDIR}/EasyRSA-v${PV}"
 
 PATCHES=(
-	"${FILESDIR}/${PN}-3.0.3-fix-paths.patch"
+	"${FILESDIR}/${PN}-3.0.6-fix-paths.patch"
 	"${FILESDIR}/${PN}-3.0.6-p12-nopass-friendly-name.patch"
 )
 
 src_prepare() {
 	default
-	use ipsec && eapply "${FILESDIR}/${PN}-3.0.4-ipsec-support.patch"
+	use ipsec && eapply "${FILESDIR}/${PN}-3.0.6-ipsec-support.patch"
 	sed -i 's|./easyrsa|easyrsa|' easyrsa || die
 }
 
