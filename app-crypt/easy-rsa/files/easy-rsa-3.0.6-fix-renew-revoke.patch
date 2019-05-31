@@ -1,0 +1,184 @@
+From 0198f07eda4b630dae64acd3c8e0a407840f7aea Mon Sep 17 00:00:00 2001
+From: Xavier Bachelot <xavier@bachelot.org>
+Date: Fri, 22 Mar 2019 15:58:23 +0100
+Subject: [PATCH 1/5] verify_ca_init has no business checking the revoked and
+ renewed dirs
+
+Signed-off-by: Xavier Bachelot <xavier@bachelot.org>
+---
+ easyrsa3/easyrsa | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index e019982..ef31125 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -442,9 +442,7 @@ $help_note"
+ 	[ "$1" = "test" ] && return 0
+ 
+ 	# verify expected CA-specific dirs:
+-	for i in issued certs_by_serial \
+-		 revoked/certs_by_serial revoked/private_by_serial revoked/reqs_by_serial \
+-		 renewed/certs_by_serial renewed/private_by_serial renewed/reqs_by_serial ;
++	for i in issued certs_by_serial
+ 	do
+ 		[ -d "$EASYRSA_PKI/$i" ] || die "\
+ Missing expected CA dir: $i (perhaps you need to run build-ca?)
+
+From b3b3623de9f77f31c1a2b1d82c145ba9fd41983f Mon Sep 17 00:00:00 2001
+From: Xavier Bachelot <xavier@bachelot.org>
+Date: Fri, 22 Mar 2019 15:59:31 +0100
+Subject: [PATCH 2/5] Automatically create missing revoked dirs
+
+Signed-off-by: Xavier Bachelot <xavier@bachelot.org>
+---
+ easyrsa3/easyrsa | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index ef31125..c1f098b 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -941,6 +941,11 @@ input in file: $req_in"
+ 	key_by_serial_revoked="$EASYRSA_PKI/revoked/private_by_serial/$cert_serial.key"
+ 	req_by_serial_revoked="$EASYRSA_PKI/revoked/reqs_by_serial/$cert_serial.req"
+ 
++	# make sure revoked dirs exist
++	[ -d "$EASYRSA_PKI/revoked" ] || mkdir "$EASYRSA_PKI/revoked"
++	[ -d "$EASYRSA_PKI/revoked/certs_by_serial" ] || mkdir "$EASYRSA_PKI/revoked/certs_by_serial"
++	[ -d "$EASYRSA_PKI/revoked/private_by_serial" ] || mkdir "$EASYRSA_PKI/revoked/private_by_serial"
++	[ -d "$EASYRSA_PKI/revoked/reqs_by_serial" ] || mkdir "$EASYRSA_PKI/revoked/reqs_by_serial"
+ 
+ 	# move crt, key and req file to revoked folders
+ 	mv "$crt_in" "$crt_by_serial_revoked"
+
+From 9715751815a73a9a8cb7a4daf47c1cb7c6e79150 Mon Sep 17 00:00:00 2001
+From: Xavier Bachelot <xavier@bachelot.org>
+Date: Fri, 22 Mar 2019 16:00:06 +0100
+Subject: [PATCH 3/5] Automatically create missing renewed dirs
+
+Signed-off-by: Xavier Bachelot <xavier@bachelot.org>
+---
+ easyrsa3/easyrsa | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index c1f098b..57cff16 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -1108,6 +1108,11 @@ input in file: $req_in"
+ 	key_by_serial_renewed="$EASYRSA_PKI/renewed/private_by_serial/$cert_serial.key"
+ 	req_by_serial_renewed="$EASYRSA_PKI/renewed/reqs_by_serial/$cert_serial.req"
+ 
++	# make sure renewed dirs exist
++	[ -d "$EASYRSA_PKI/renewed" ] || mkdir "$EASYRSA_PKI/renewed"
++	[ -d "$EASYRSA_PKI/renewed/certs_by_serial" ] || mkdir "$EASYRSA_PKI/renewed/certs_by_serial"
++	[ -d "$EASYRSA_PKI/renewed/private_by_serial" ] || mkdir "$EASYRSA_PKI/renewed/private_by_serial"
++	[ -d "$EASYRSA_PKI/renewed/reqs_by_serial" ] || mkdir "$EASYRSA_PKI/renewed/reqs_by_serial"
+ 
+ 	# move crt, key and req file to renewed folders
+ 	mv "$crt_in" "$crt_by_serial_renewed"
+
+From 8075dbbdedd4aedc313f6dfcd7b471297f97efa0 Mon Sep 17 00:00:00 2001
+From: Xavier Bachelot <xavier@bachelot.org>
+Date: Fri, 22 Mar 2019 16:28:04 +0100
+Subject: [PATCH 4/5] Don't die on missing req on revoke/renew
+
+Signed-off-by: Xavier Bachelot <xavier@bachelot.org>
+---
+ easyrsa3/easyrsa | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index 57cff16..101b9ea 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -927,9 +927,12 @@ Run easyrsa without commands for usage and command help."
+ Unable to move revoked input file. The file is not a valid certificate. Unexpected
+ input in file: $crt_in"
+ 
+-	verify_file req "$req_in" || die "\
++	if [ -e "$req_in" ]
++	then
++		verify_file req "$req_in" || die "\
+ Unable to move request. The file is not a valid request. Unexpected
+ input in file: $req_in"
++	fi
+ 
+ 	# get the serial number of the certificate -> serial=XXXX
+ 	cert_serial="$("$EASYRSA_OPENSSL" x509 -in "$crt_in" -noout -serial)"
+@@ -949,7 +952,9 @@ input in file: $req_in"
+ 
+ 	# move crt, key and req file to revoked folders
+ 	mv "$crt_in" "$crt_by_serial_revoked"
+-	mv "$req_in" "$req_by_serial_revoked"
++
++	# only move the req if we have it
++	[ -e "$req_in" ] && mv "$req_in" "$req_by_serial_revoked"
+ 
+ 	# only move the key if we have it
+ 	if [ -e "$key_in" ]
+@@ -1094,9 +1099,12 @@ Run easyrsa without commands for usage and command help."
+ Unable to move renewed input file. The file is not a valid certificate. Unexpected
+ input in file: $crt_in"
+ 
+-	verify_file req "$req_in" || die "\
++	if [ -e "$req_in" ]
++	then
++		verify_file req "$req_in" || die "\
+ Unable to move request. The file is not a valid request. Unexpected
+ input in file: $req_in"
++	fi
+ 
+ 	# get the serial number of the certificate -> serial=XXXX
+ 	cert_serial="$("$EASYRSA_OPENSSL" x509 -in "$crt_in" -noout -serial)"
+@@ -1116,7 +1124,9 @@ input in file: $req_in"
+ 
+ 	# move crt, key and req file to renewed folders
+ 	mv "$crt_in" "$crt_by_serial_renewed"
+-	mv "$req_in" "$req_by_serial_renewed"
++
++	# only move the req if we have it
++	[ -e "$req_in" ] && mv "$req_in" "$req_by_serial_renewed"
+ 
+ 	# only move the key if we have it
+ 	if [ -e "$key_in" ]
+
+From 30d1c95e6863197ae8f0f6f4e2e4a274cbc69a2d Mon Sep 17 00:00:00 2001
+From: Xavier Bachelot <xavier@bachelot.org>
+Date: Fri, 22 Mar 2019 16:28:26 +0100
+Subject: [PATCH 5/5] Simplify
+
+Signed-off-by: Xavier Bachelot <xavier@bachelot.org>
+---
+ easyrsa3/easyrsa | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index 101b9ea..fe1431d 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -957,10 +957,7 @@ input in file: $req_in"
+ 	[ -e "$req_in" ] && mv "$req_in" "$req_by_serial_revoked"
+ 
+ 	# only move the key if we have it
+-	if [ -e "$key_in" ]
+-	then
+-		mv "$key_in" "$key_by_serial_revoked"
+-	fi
++	[ -e "$key_in" ] && mv "$key_in" "$key_by_serial_revoked"
+ 
+ 	# move the rest of the files (p12, p7, ...)
+ 	# shellcheck disable=SC2231
+@@ -1129,10 +1126,7 @@ input in file: $req_in"
+ 	[ -e "$req_in" ] && mv "$req_in" "$req_by_serial_renewed"
+ 
+ 	# only move the key if we have it
+-	if [ -e "$key_in" ]
+-	then
+-		mv "$key_in" "$key_by_serial_renewed"
+-	fi
++	[ -e "$key_in" ] && mv "$key_in" "$key_by_serial_renewed"
+ 
+ 	# move the rest of the files (p12, p7, ...)
+ 	# shellcheck disable=SC2231
