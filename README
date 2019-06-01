@@ -5,3 +5,4 @@ Using eselect-repository:
 Using layman (deprecated):
 
 # wget -O /etc/layman/overlays/vampik.xml https://raw.github.com/vampik/gentoo-overlay/master/repo.xml
+# layman -a vampik
