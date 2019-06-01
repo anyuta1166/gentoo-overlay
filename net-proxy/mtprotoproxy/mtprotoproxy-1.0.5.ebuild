@@ -25,7 +25,7 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 DEPEND="${PYTHON_DEPS}"
 RDEPEND="${DEPEND}
-	|| ( dev-python/pycryptodome dev-python/pycrypto dev-python/pyaes )
+	|| ( dev-python/cryptography dev-python/pycryptodome dev-python/pycrypto dev-python/pyaes )
 	dev-python/uvloop"
 
 DOCS=( README.md )
