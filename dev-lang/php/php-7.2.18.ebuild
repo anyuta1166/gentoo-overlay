@@ -1,13 +1,13 @@
-# Copyright 1999-2018 Gentoo Authors
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI="7"
 
-inherit flag-o-matic eapi7-ver systemd autotools
+inherit flag-o-matic systemd autotools
 
 DESCRIPTION="The PHP language runtime engine"
-HOMEPAGE="https://secure.php.net/"
-SRC_URI="https://secure.php.net/distributions/${P}.tar.xz"
+HOMEPAGE="https://php.net/"
+SRC_URI="https://php.net/distributions/${P}.tar.xz"
 
 LICENSE="PHP-3.01
 	BSD
@@ -123,6 +123,8 @@ DEPEND="${COMMON_DEPEND}
 	app-arch/xz-utils
 	>=sys-devel/bison-3.0.1"
 
+BDEPEND="virtual/pkgconfig"
+
 # Without USE=readline or libedit, the interactive "php -a" CLI will hang.
 REQUIRED_USE="
 	|| ( cli cgi fpm apache2 embed phpdbg )
@@ -152,6 +154,7 @@ REQUIRED_USE="
 "
 PATCHES=(
 	"${FILESDIR}/php-freetype-2.9.1.patch"
+	"${FILESDIR}/php-7.2.13-intl-use-icu-namespace.patch"
 	"${FILESDIR}/php-7.2.0-fpm-php_values-from-env.patch"
 	"${FILESDIR}/php-7.2.0-fpm-restore-ini-from-env.patch"
 )
