@@ -35,6 +35,8 @@ RDEPEND="${DEPEND}
 
 need_httpd_cgi
 
+S="${WORKDIR}/${PN}-${P}"
+
 pkg_setup() {
 	webapp_pkg_setup
 
