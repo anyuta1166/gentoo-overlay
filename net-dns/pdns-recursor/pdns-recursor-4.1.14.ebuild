@@ -56,8 +56,6 @@ src_install() {
 	# set defaults: setuid=nobody, setgid=nobody
 	sed -i \
 		-e 's/^# set\([ug]\)id=$/set\1id=nobody/' \
-		-e 's/^# quiet=$/quiet=on/' \
-		-e 's/^# chroot=$/chroot=\/var\/lib\/powerdns/' \
 		"${D}"/etc/powerdns/recursor.conf
 
 	newinitd "${FILESDIR}"/pdns-recursor-r1 pdns-recursor
