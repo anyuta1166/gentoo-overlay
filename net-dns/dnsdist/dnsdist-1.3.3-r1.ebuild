@@ -55,6 +55,10 @@ DEPEND="${RDEPEND}
 	dev-python/virtualenv
 "
 
+PATCHES=(
+	"${FILESDIR}/${PN}-1.3.3-service.patch"
+)
+
 src_prepare() {
 	default
 	[[ ${PV} == 9999 ]] && eautoreconf

@@ -1,0 +1,12 @@
+diff -Nru dnsdist-1.3.3.orig/dnsdist.service.in dnsdist-1.3.3/dnsdist.service.in
+--- dnsdist-1.3.3.orig/dnsdist.service.in	2018-03-29 17:02:01.000000000 +0300
++++ dnsdist-1.3.3/dnsdist.service.in	2019-06-19 23:22:17.628886146 +0300
+@@ -8,7 +8,7 @@
+ [Service]
+ ExecStartPre=@bindir@/dnsdist --check-config
+ # Note: when editing the ExecStart command, keep --supervised and --disable-syslog
+-ExecStart=@bindir@/dnsdist --supervised --disable-syslog
++ExecStart=@bindir@/dnsdist --supervised --disable-syslog -u dnsdist -g dnsdist
+ 
+ Type=notify
+ Restart=on-failure
