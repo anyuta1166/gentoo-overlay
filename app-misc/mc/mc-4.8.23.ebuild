@@ -39,7 +39,7 @@ DEPEND="${RDEPEND}
 	"
 
 PATCHES=(
-	"${FILESDIR}"/${PN}-4.8.21-sftp_ip.patch
+	"${FILESDIR}"/${PN}-4.8.23-sftp_ip.patch
 )
 
 S=${WORKDIR}/${MY_P}
