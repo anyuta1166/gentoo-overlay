@@ -72,6 +72,10 @@ pkg_setup() {
 src_prepare() {
 	default
 
+	if [[ "${PV}" == 9999 ]] ; then
+		"${S}"/scripts/mkini.sh || die
+	fi
+
 	sed \
 		-e 's:mumble-server:murmur:g' \
 		-e 's:/var/run:/run:g' \
