@@ -73,7 +73,7 @@ src_prepare() {
 	default
 
 	if [[ "${PV}" == 9999 ]] ; then
-		"${S}"/scripts/mkini.sh || die
+		( cd "${S}"/scripts && "${S}"/scripts/mkini.sh )
 	fi
 
 	sed \
