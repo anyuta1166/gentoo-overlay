@@ -54,10 +54,17 @@ DEPEND="${RDEPEND}
 BDEPEND="
 	virtual/pkgconfig"
 
+if [[ "${PV}" == *9999 ]] ; then
+	# Required for the mkini.sh script which calls perl multiple times
+	BDEPEND+="
+		dev-lang/perl
+	"
+fi
+
 DOC_CONTENTS="
 	Useful scripts are located in /usr/share/doc/${PF}/scripts.\n
 	Please execute:\n
-	murmurd -ini /etc/murmur/murmur.ini -supw <pw>\n
+	murmurd -ini /etc/murmur.ini -supw <pw>\n
 	chown murmur:murmur /var/lib/murmur/murmur.sqlite\n
 	to set the build-in 'SuperUser' password before starting murmur.
 	Please restart dbus before starting murmur, or else dbus
@@ -72,8 +79,10 @@ pkg_setup() {
 src_prepare() {
 	default
 
-	if [[ "${PV}" == 9999 ]] ; then
-		( cd "${S}"/scripts && "${S}"/scripts/mkini.sh )
+	if [[ "${PV}" == *9999 ]] ; then
+		pushd scripts &>/dev/null || die
+		./mkini.sh || die
+		popd &>/dev/null || die
 	fi
 
 	sed \
@@ -107,18 +116,15 @@ src_install() {
 	dodoc -r scripts/server
 	docompress -x /usr/share/doc/${PF}/scripts
 
-	local dir=release
-	if use debug; then
-		dir=debug
-	fi
-
+	local dir="$(usex debug debug release)"
 	dobin "${dir}"/murmurd
 
-	insinto /etc/
-	newins scripts/murmur.ini.system murmur.ini
+	local etcdir="/etc"
+	insinto ${etcdir}
+	newins scripts/${PN}.ini.system ${PN}.ini
 
 	insinto /etc/logrotate.d/
-	newins "${FILESDIR}"/murmur.logrotate-r1 murmur
+	newins "${FILESDIR}"/murmur.logrotate murmur
 
 	insinto /etc/dbus-1/system.d/
 	doins scripts/murmur.conf
@@ -138,8 +144,8 @@ src_install() {
 
 	# Fix permissions on config file as it might contain passwords.
 	# (bug #559362)
-	fowners root:murmur /etc/murmur.ini
-	fperms 640 /etc/murmur.ini
+	fowners root:murmur ${etcdir}/murmur.ini
+	fperms 640 ${etcdir}/murmur.ini
 
 	doman man/murmurd.1
 
