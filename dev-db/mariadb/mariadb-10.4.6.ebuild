@@ -62,6 +62,7 @@ PATCHES=(
 	"${MY_PATCH_DIR}"/20024_all_mariadb-10.2.6-mysql_st-regression.patch
 	"${MY_PATCH_DIR}"/20025_all_mariadb-10.2.6-gssapi-detect.patch
 	"${MY_PATCH_DIR}"/20035_all_mariadb-10.3-atomic-detection.patch
+	"$FILESDIR"/mariadb-10.4.6-fix-path.patch
 )
 
 # Be warned, *DEPEND are version-dependant
@@ -907,8 +908,7 @@ pkg_config() {
 	[[ -f "${cmd}" ]] || cmd=( "${EROOT}/usr/bin/mysql_install_db" )
 	cmd+=( "--basedir=${EPREFIX}/usr" ${options} "--datadir=${ROOT}/${MY_DATADIR}" "--tmpdir=${ROOT}/${MYSQL_TMPDIR}" )
 	einfo "Command: ${cmd[*]}"
-	su -s /bin/sh -c "${cmd[*]}" mysql \
-		>"${TMPDIR}"/mysql_install_db.log 2>&1
+	/bin/sh -c "${cmd[*]}" >"${TMPDIR}"/mysql_install_db.log 2>&1
 	if [[ $? -ne 0 ]]; then
 		grep -B5 -A999 -i "ERROR" "${TMPDIR}"/mysql_install_db.log 1>&2
 		die "Failed to initialize mysqld. Please review ${EPREFIX}/var/log/mysql/mysqld.err AND ${TMPDIR}/mysql_install_db.log"
@@ -954,7 +954,7 @@ pkg_config() {
 	if [[ -n "${MYSQL_ROOT_PASSWORD}" ]] ; then
 		ebegin "Setting root password"
 		# Do this from memory, as we don't want clear text passwords in temp files
-		local sql="SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${MYSQL_ROOT_PASSWORD}')"
+		local sql="FLUSH PRIVILEGES; SET PASSWORD FOR 'root'@'localhost' = PASSWORD('${MYSQL_ROOT_PASSWORD}')"
 		"${EROOT}/usr/bin/mysql" \
 			"--socket=${socket}" \
 			-hlocalhost \

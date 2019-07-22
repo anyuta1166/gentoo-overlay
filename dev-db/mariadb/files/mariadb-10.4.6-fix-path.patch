@@ -1,0 +1,12 @@
+diff -Nru mariadb-10.4.6.orig/scripts/mysql_install_db.sh mariadb-10.4.6/scripts/mysql_install_db.sh
+--- mariadb-10.4.6.orig/scripts/mysql_install_db.sh	2019-06-18 01:00:32.000000000 +0300
++++ mariadb-10.4.6/scripts/mysql_install_db.sh	2019-07-21 21:34:34.631295542 +0300
+@@ -345,7 +345,7 @@
+     cannot_find_file fill_help_tables.sql @pkgdata_locations@
+     exit 1
+   fi
+-  plugindir=`find_in_dirs --dir auth_pam.so $basedir/lib*/plugin $basedir/lib*/mysql/plugin`
++  plugindir=`find_in_dirs --dir auth_pam.so $basedir/lib*/plugin $basedir/lib*/mariadb/plugin`
+   pamtooldir=$plugindir
+ # relative from where the script was run for a relocatable install
+ elif test -n "$dirname0" -a -x "$rel_mysqld" -a ! "$rel_mysqld" -ef "@sbindir@/mysqld"
