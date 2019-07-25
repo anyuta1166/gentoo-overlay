@@ -16,7 +16,7 @@ KEYWORDS="~amd64 ~x86"
 IUSE=""
 
 DEPEND=">=dev-lang/erlang-19.0
-	>=dev-erlang/base64url-0.1"
+	>=dev-erlang/base64url-1.0"
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md  README.md )
