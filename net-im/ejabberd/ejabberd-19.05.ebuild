@@ -17,7 +17,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 REQUIRED_USE="mssql? ( odbc )"
 # TODO: Add 'tools' flag.
-IUSE="captcha debug full-xml hipe ldap mssql mysql nls odbc pam postgres redis
+IUSE="captcha debug full-xml hipe ldap mssql mysql odbc pam postgres redis
 	riak roster-gw sip sqlite stun zlib"
 
 RESTRICT="test"
