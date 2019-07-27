@@ -15,13 +15,15 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 IUSE="test"
 
-RDEPEND=">=dev-erlang/fast_xml-1.1.31
-	>=dev-erlang/p1_utils-1.0.12
-	>=dev-erlang/stringprep-1.0.12
-	dev-lang/erlang"
+RDEPEND="dev-lang/erlang
+	>=dev-erlang/ezlib-1.0.6
+	>=dev-erlang/fast_tls-1.1.1
+	>=dev-erlang/fast_xml-1.1.36
+	>=dev-erlang/p1_utils-1.0.15
+	>=dev-erlang/stringprep-1.0.16"
 DEPEND="${RDEPEND}"
 
-DOCS=( CHANGELOG.md )
+DOCS=( CHANGELOG.md README.md )
 
 src_prepare() {
 	rebar_src_prepare
