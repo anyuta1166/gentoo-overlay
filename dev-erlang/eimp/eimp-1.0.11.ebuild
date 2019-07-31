@@ -15,9 +15,9 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="test"
 
-RDEPEND="media-libs/gd[png,jpeg,webp]
-	>=dev-lang/erlang-17.1
-	>=dev-erlang/p1_utils-1.0.12"
+RDEPEND=">=dev-lang/erlang-17.1
+	>=dev-erlang/p1_utils-1.0.15
+	media-libs/gd[png,jpeg,webp]"
 DEPEND="${RDEPEND}"
 
-DOCS=( README.md LICENSE.txt )
+DOCS=( CHANGELOG.md README.md)
