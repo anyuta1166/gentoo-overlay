@@ -349,7 +349,7 @@ multilib_src_install_all() {
 	keepdir /usr/lib/{binfmt.d,modules-load.d}
 	keepdir /usr/lib/systemd/user-generators
 	keepdir /var/lib/systemd
-	rm -rf "${ED}"/var/log || die
+	keepdir /var/log/journal
 
 	# Symlink /etc/sysctl.conf for easy migration.
 	dosym ../sysctl.conf /etc/sysctl.d/99-sysctl.conf
