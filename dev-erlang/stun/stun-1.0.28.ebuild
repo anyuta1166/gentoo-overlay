@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -14,9 +14,9 @@ LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
-DEPEND=">=dev-erlang/fast_tls-1.0.23
-	>=dev-erlang/p1_utils-1.0.12
-	>=dev-lang/erlang-17.1"
+DEPEND=">=dev-lang/erlang-17.1
+	>=dev-erlang/fast_tls-1.1.1
+	>=dev-erlang/p1_utils-1.0.15"
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md README.md )

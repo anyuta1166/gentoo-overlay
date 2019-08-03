@@ -18,7 +18,7 @@ KEYWORDS="~amd64 ~x86"
 REQUIRED_USE="mssql? ( odbc )"
 # TODO: Add 'tools' flag.
 IUSE="captcha debug full-xml hipe ldap mssql mysql odbc pam postgres redis
-	riak roster-gw sip sqlite stun zlib"
+	roster-gw sip sqlite stun zlib"
 
 RESTRICT="test"
 
@@ -49,10 +49,6 @@ CDEPEND="
 	pam? ( >=dev-erlang/epam-1.0.6 )
 	postgres? ( >=dev-erlang/p1_pgsql-1.1.8 )
 	redis? ( >=dev-erlang/eredis-1.0.8 )
-	riak? (
-		>=dev-erlang/hamcrest-0.1.0_p20150103
-		>=dev-erlang/riakc-2.5.3
-	)
 	sip? ( >=dev-erlang/esip-1.0.29 )
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
 	stun? ( >=dev-erlang/stun-1.0.28 )
@@ -219,12 +215,15 @@ src_configure() {
 		$(use_enable pam) \
 		$(use_enable postgres pgsql) \
 		$(use_enable redis) \
-		$(use_enable riak) \
+		--disable-riak \
 		$(use_enable roster-gw roster-gateway-workaround) \
 		$(use_enable sqlite) \
 		$(use_enable sip) \
 		$(use_enable stun) \
 		$(use_enable zlib)
+
+	# riak support dropped by upstream
+	# riak-erlang-client is abandoned and doesn't work correctly with OTP22
 
 	# more options to support
 	# --enable-elixir requires https://github.com/elixir-lang/elixir
