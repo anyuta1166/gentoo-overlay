@@ -58,7 +58,7 @@ DEPEND="${CDEPEND}
 RDEPEND="${CDEPEND}
 	captcha? ( media-gfx/imagemagick[truetype,png] )"
 
-DOCS=( README )
+DOCS=( CHANGELOG.md README.md )
 PATCHES=( "${FILESDIR}/${P}-ejabberdctl.patch"
 	"${FILESDIR}/${P}-0002-Dont-overwrite-service-file.patch" )
 
@@ -222,7 +222,8 @@ src_configure() {
 		$(use_enable stun) \
 		$(use_enable zlib)
 
-	# riak support dropped by upstream
+	# riak support dropped by upstream after 19.05 release
+	# drop it here too because
 	# riak-erlang-client is abandoned and doesn't work correctly with OTP22
 
 	# more options to support
