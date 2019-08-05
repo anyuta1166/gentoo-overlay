@@ -13,7 +13,6 @@ SRC_URI="https://github.com/processone/eimp/archive/${PV}.tar.gz
 LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="test"
 
 RDEPEND=">=dev-lang/erlang-17.1
 	>=dev-erlang/p1_utils-1.0.15
