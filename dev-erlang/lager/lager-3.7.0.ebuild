@@ -14,7 +14,7 @@ LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
-DEPEND=">=dev-lang/erlang-19.0
+DEPEND=">=dev-lang/erlang-20.0
 	>=dev-erlang/goldrush-0.1.9"
 RDEPEND="${DEPEND}"
 
