@@ -74,7 +74,6 @@ JABBER_SPOOL="${EPREFIX}/var/spool/jabber"
 # - Correct PAM service name.
 adjust_config() {
 	sed -e "s|\"/path/to/ssl.pem\"|\"${EJABBERD_CERT}\"|g" \
-		-e "s|\"pamservicename\"|\"xmpp\"|" \
 		-i "${S}/ejabberd.yml.example" \
 		|| die 'failed to adjust example config'
 }
@@ -88,9 +87,6 @@ correct_ejabberd_paths() {
 	sed -e "/EJABBERD_BIN_PATH=/{s:ejabberd:${P}:}" \
 		-i "${S}/ejabberdctl.template" \
 		|| die 'failed to set ejabberd path in ejabberdctl.template'
-	sed -e 's|\(captcha_cmd:[[:space:]]*"\).\+"|\1'$(get_ejabberd_path)'/priv/bin/captcha.sh"|' \
-		-i "${S}/ejabberd.yml.example" \
-		|| die 'failed to correct path to captcha.sh in example config'
 }
 
 # Get epam-wrapper from 'files' directory and correct path to lib directory in
