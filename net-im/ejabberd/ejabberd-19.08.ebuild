@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -14,7 +14,7 @@ SRC_URI="https://www.process-one.net/downloads/${PN}/${PV}/${P}.tgz
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 REQUIRED_USE="mssql? ( odbc )"
 # TODO: Add 'tools' flag.
 IUSE="captcha debug full-xml hipe ldap mssql mysql odbc pam postgres redis
@@ -27,20 +27,21 @@ RESTRICT="test"
 # TODO:		>=dev-erlang/luerl-0.3
 # TODO: )
 CDEPEND="
-	>=dev-erlang/cache_tab-1.0.19
-	>=dev-erlang/eimp-1.0.11
-	>=dev-erlang/fast_tls-1.1.1
-	>=dev-erlang/fast_xml-1.1.36
-	>=dev-erlang/fast_yaml-1.0.19
+	>=dev-erlang/cache_tab-1.0.20
+	>=dev-erlang/eimp-1.0.12
+	>=dev-erlang/fast_tls-1.1.2
+	>=dev-erlang/fast_xml-1.1.37
+	>=dev-erlang/fast_yaml-1.0.20
+	>=dev-erlang/yconf-1.0.0
 	>=dev-erlang/jiffy-0.14.8
 	>=dev-erlang/jose-1.8.4
 	>=dev-erlang/lager-3.6.10
 	>=dev-erlang/p1_oauth2-0.6.5
-	>=dev-erlang/p1_utils-1.0.15
-	>=dev-erlang/stringprep-1.0.16
-	>=dev-erlang/xmpp-1.3.4
-	>=dev-erlang/pkix-1.0.2
-	>=dev-erlang/mqtree-1.0.3
+	>=dev-erlang/p1_utils-1.0.16
+	>=dev-erlang/stringprep-1.0.17
+	>=dev-erlang/xmpp-1.4.0
+	>=dev-erlang/pkix-1.0.3
+	>=dev-erlang/mqtree-1.0.4
 	>=dev-lang/erlang-19.1[hipe?,odbc?,ssl]
 	>=net-im/jabber-base-0.01
 	ldap? ( =net-nds/openldap-2* )
@@ -49,9 +50,9 @@ CDEPEND="
 	pam? ( >=dev-erlang/epam-1.0.6 )
 	postgres? ( >=dev-erlang/p1_pgsql-1.1.8 )
 	redis? ( >=dev-erlang/eredis-1.0.8 )
-	sip? ( >=dev-erlang/esip-1.0.29 )
+	sip? ( >=dev-erlang/esip-1.0.30 )
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
-	stun? ( >=dev-erlang/stun-1.0.28 )
+	stun? ( >=dev-erlang/stun-1.0.29 )
 	zlib? ( >=dev-erlang/ezlib-1.0.6 )"
 DEPEND="${CDEPEND}
 	>=sys-apps/gawk-4.1"
@@ -215,16 +216,11 @@ src_configure() {
 		$(use_enable pam) \
 		$(use_enable postgres pgsql) \
 		$(use_enable redis) \
-		--disable-riak \
 		$(use_enable roster-gw roster-gateway-workaround) \
 		$(use_enable sqlite) \
 		$(use_enable sip) \
 		$(use_enable stun) \
 		$(use_enable zlib)
-
-	# riak support dropped by upstream after 19.05 release
-	# drop it here too because
-	# riak-erlang-client is abandoned and doesn't work correctly with OTP22
 
 	# more options to support
 	# --enable-elixir requires https://github.com/elixir-lang/elixir
