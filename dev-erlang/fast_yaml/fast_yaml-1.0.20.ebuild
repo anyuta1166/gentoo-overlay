@@ -21,5 +21,5 @@ RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md README.md )
 PATCHES=(
-	"${FILESDIR}/${PV}-dont-escape-simple-quote.patch"
+	"${FILESDIR}/${P}-dont-escape-simple-quote.patch"
 )
