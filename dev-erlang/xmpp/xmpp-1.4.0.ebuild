@@ -16,10 +16,10 @@ KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 RDEPEND="dev-lang/erlang
 	>=dev-erlang/ezlib-1.0.6
-	>=dev-erlang/fast_tls-1.1.1
-	>=dev-erlang/fast_xml-1.1.36
-	>=dev-erlang/p1_utils-1.0.15
-	>=dev-erlang/stringprep-1.0.16"
+	>=dev-erlang/fast_tls-1.1.2
+	>=dev-erlang/fast_xml-1.1.37
+	>=dev-erlang/p1_utils-1.0.16
+	>=dev-erlang/stringprep-1.0.17"
 DEPEND="${RDEPEND}"
 
 DOCS=( CHANGELOG.md README.md )

@@ -15,7 +15,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 RDEPEND=">=dev-lang/erlang-17.1
-	>=dev-erlang/p1_utils-1.0.15
+	>=dev-erlang/p1_utils-1.0.16
 	media-libs/gd[png,jpeg,webp]"
 DEPEND="${RDEPEND}"
 

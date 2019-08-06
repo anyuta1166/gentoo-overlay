@@ -5,8 +5,8 @@ EAPI=6
 
 inherit rebar
 
-DESCRIPTION="In-memory cache Erlang and Elixir library"
-HOMEPAGE="https://github.com/processone/cache_tab"
+DESCRIPTION="Fast Expat based Erlang XML parsing library"
+HOMEPAGE="https://github.com/processone/fast_xml"
 SRC_URI="https://github.com/processone/${PN}/archive/${PV}.tar.gz
 	-> ${P}.tar.gz"
 
@@ -15,7 +15,8 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 DEPEND=">=dev-lang/erlang-17.1
-	>=dev-erlang/p1_utils-1.0.15"
+	>=dev-erlang/p1_utils-1.0.16
+	dev-libs/expat"
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md README.md )

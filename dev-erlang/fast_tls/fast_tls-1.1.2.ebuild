@@ -5,18 +5,20 @@ EAPI=6
 
 inherit rebar
 
-DESCRIPTION="STUN and TURN library for Erlang and Elixir"
-HOMEPAGE="https://github.com/processone/stun"
+DESCRIPTION="TLS/SSL native driver for Erlang and Elixir"
+HOMEPAGE="https://github.com/processone/fast_tls"
 SRC_URI="https://github.com/processone/${PN}/archive/${PV}.tar.gz
 	-> ${P}.tar.gz"
 
-LICENSE="BSD"
+LICENSE="Apache-2.0"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
+KEYWORDS="amd64 ~arm ~ia64 ppc ~sparc x86"
+IUSE="libressl"
 
 DEPEND=">=dev-lang/erlang-17.1
-	>=dev-erlang/fast_tls-1.1.1
-	>=dev-erlang/p1_utils-1.0.15"
+	>=dev-erlang/p1_utils-1.0.16
+	!libressl? ( dev-libs/openssl:0= )
+	libressl? ( dev-libs/libressl:0= )"
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md README.md )
