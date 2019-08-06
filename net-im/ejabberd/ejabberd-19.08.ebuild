@@ -199,7 +199,7 @@ src_prepare() {
 
 	sed -e "s|\(AC_INIT(ejabberd, \)m4_esyscmd([^)]*)|\1[$PV]|" \
 		-i configure.ac || die "Failed to write correct version to configure"
-	# eautoreconf # required in case of download from github
+	eautoreconf # required in case of download from github
 }
 
 src_configure() {
