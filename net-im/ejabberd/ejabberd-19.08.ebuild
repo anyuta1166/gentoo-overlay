@@ -26,7 +26,7 @@ RESTRICT="test"
 # TODO: tools? (
 # TODO:		>=dev-erlang/luerl-0.3
 # TODO: )
-CDEPEND="
+DEPEND=">=dev-lang/erlang-19.1[hipe?,odbc?,ssl]
 	>=dev-erlang/cache_tab-1.0.20
 	>=dev-erlang/eimp-1.0.12
 	>=dev-erlang/fast_tls-1.1.2
@@ -42,7 +42,6 @@ CDEPEND="
 	>=dev-erlang/xmpp-1.4.0
 	>=dev-erlang/pkix-1.0.3
 	>=dev-erlang/mqtree-1.0.4
-	>=dev-lang/erlang-19.1[hipe?,odbc?,ssl]
 	>=net-im/jabber-base-0.01
 	ldap? ( =net-nds/openldap-2* )
 	mysql? ( >=dev-erlang/p1_mysql-1.0.11 )
@@ -54,29 +53,17 @@ CDEPEND="
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
 	stun? ( >=dev-erlang/stun-1.0.29 )
 	zlib? ( >=dev-erlang/ezlib-1.0.6 )"
-DEPEND="${CDEPEND}
-	>=sys-apps/gawk-4.1"
-RDEPEND="${CDEPEND}
+RDEPEND="${DEPEND}
 	captcha? ( media-gfx/imagemagick[truetype,png] )"
 
 DOCS=( CHANGELOG.md README.md )
 PATCHES=( "${FILESDIR}/${P}-ejabberdctl.patch"
 	"${FILESDIR}/${P}-0002-Dont-overwrite-service-file.patch" )
 
-EJABBERD_CERT="${EPREFIX}/etc/ssl/ejabberd/server.pem"
 # Paths in net-im/jabber-base
 JABBER_ETC="${EPREFIX}/etc/jabber"
 JABBER_LOG="${EPREFIX}/var/log/jabber"
 JABBER_SPOOL="${EPREFIX}/var/spool/jabber"
-
-# Adjust example configuration file to Gentoo.
-# - Use our sample certificates.
-# - Correct PAM service name.
-adjust_config() {
-	sed -e "s|\"/path/to/ssl.pem\"|\"${EJABBERD_CERT}\"|g" \
-		-i "${S}/ejabberd.yml.example" \
-		|| die 'failed to adjust example config'
-}
 
 # Set paths to ejabberd lib directory consistently to point always to directory
 # suffixed with version.
@@ -100,28 +87,6 @@ customize_epam_wrapper() {
 	sed -r -e "s@^(ERL_LIBS=).*\$@\1${EPREFIX}$(get_erl_libs)@" \
 		"${epam_wrapper_src}" >"${epam_wrapper_dst}" \
 		|| die 'failed to install epam-wrapper'
-}
-
-# Check if there already exists a certificate.
-ejabberd_cert_exists() {
-	local cert
-
-	for cert in $(gawk -- \
-			'match($0, /^[[:space:]]*certfile: "([^"]+)"/, m) {print m[1];}' \
-			"${EROOT%/}${JABBER_ETC}/ejabberd.yml"); do
-		[[ -f ${cert} ]] && return 0
-	done
-
-	return 1
-}
-
-# Generate and install sample ejabberd certificate. It's installed into
-# EJABBERD_CERT path.
-ejabberd_cert_install() {
-	SSL_ORGANIZATION="${SSL_ORGANIZATION:-ejabberd XMPP Server}"
-	install_cert "${EJABBERD_CERT%.*}"
-	chown root:jabber "${EROOT%/}${EJABBERD_CERT}" || die
-	chmod 0440 "${EROOT%/}${EJABBERD_CERT}" || die
 }
 
 # Get path to ejabberd lib directory.
@@ -178,7 +143,6 @@ src_prepare() {
 	set_jabberbase_paths
 	make_ejabberd_service
 	skip_docs
-	adjust_config
 	customize_epam_wrapper "${FILESDIR}/epam-wrapper"
 
 	rebar_fix_include_path fast_xml
@@ -297,9 +261,5 @@ pkg_postinst() {
 		elog "   /etc/jabber/ejabberd.yml, and finally restart ejabberd with the new config"
 		elog "   file."
 		echo
-	fi
-
-	if ! ejabberd_cert_exists; then
-		ejabberd_cert_install
 	fi
 }
