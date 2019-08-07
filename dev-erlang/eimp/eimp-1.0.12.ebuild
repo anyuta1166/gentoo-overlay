@@ -21,11 +21,8 @@ DEPEND="${RDEPEND}"
 
 DOCS=( CHANGELOG.md README.md )
 
-src_prepare() {
-	rebar_src_prepare
-
-	# FIXME: The test fails when run from ebuild for some reason. I don't
-	# FIXME: Erlang and I don't know how to fix it other than by disabling
-	# FIXME: test.
-	sed -e '/^disconnected_test() ->/,/^$/ d' -i 'test/eimp_test.erl' || die
+src_test() {
+	mkdir -p .eunit/priv/bin || die
+	cp priv/bin/eimp .eunit/priv/bin/ || die
+	rebar_src_test
 }
