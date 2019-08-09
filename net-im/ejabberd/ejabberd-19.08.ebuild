@@ -193,6 +193,10 @@ src_compile() {
 src_install() {
 	default
 
+	keepdir /var/lib/lock/ejabberdctl
+	rm -rf "${ED%/}/var/log" || die
+	rm -rf "${ED%/}/var/spool" || die
+
 	if use pam; then
 		local epam_path="$(get_ejabberd_path)/priv/bin/epam"
 
