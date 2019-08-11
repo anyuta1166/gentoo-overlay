@@ -26,7 +26,7 @@ RESTRICT="test"
 # TODO: tools? (
 # TODO:		>=dev-erlang/luerl-0.3
 # TODO: )
-CDEPEND="
+DEPEND=">=dev-lang/erlang-19.1[hipe?,odbc?,ssl]
 	>=dev-erlang/cache_tab-1.0.20
 	>=dev-erlang/eimp-1.0.12
 	>=dev-erlang/fast_tls-1.1.2
@@ -42,7 +42,6 @@ CDEPEND="
 	>=dev-erlang/xmpp-1.4.0
 	>=dev-erlang/pkix-1.0.3
 	>=dev-erlang/mqtree-1.0.4
-	>=dev-lang/erlang-19.1[hipe?,odbc?,ssl]
 	>=net-im/jabber-base-0.01
 	ldap? ( =net-nds/openldap-2* )
 	mysql? ( >=dev-erlang/p1_mysql-1.0.11 )
@@ -54,9 +53,7 @@ CDEPEND="
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
 	stun? ( >=dev-erlang/stun-1.0.29 )
 	zlib? ( >=dev-erlang/ezlib-1.0.6 )"
-DEPEND="${CDEPEND}
-	>=sys-apps/gawk-4.1"
-RDEPEND="${CDEPEND}
+RDEPEND="${DEPEND}
 	captcha? ( media-gfx/imagemagick[truetype,png] )"
 
 DOCS=( CHANGELOG.md README.md )
@@ -70,10 +67,9 @@ JABBER_LOG="${EPREFIX}/var/log/jabber"
 JABBER_SPOOL="${EPREFIX}/var/spool/jabber"
 
 # Adjust example configuration file to Gentoo.
-# - Use our sample certificates.
-# - Correct PAM service name.
+# - Use our sample certificate.
 adjust_config() {
-	sed -e "s|\"/path/to/ssl.pem\"|\"${EJABBERD_CERT}\"|g" \
+	sed -ne "/certfiles/{p;a\  - ${EJABBERD_CERT}" -e ":a;n;/^\s*-/ba};p" \
 		-i "${S}/ejabberd.yml.example" \
 		|| die 'failed to adjust example config'
 }
@@ -102,16 +98,19 @@ customize_epam_wrapper() {
 		|| die 'failed to install epam-wrapper'
 }
 
-# Check if there already exists a certificate.
-ejabberd_cert_exists() {
-	local cert
-
-	for cert in $(gawk -- \
-			'match($0, /^[[:space:]]*certfile: "([^"]+)"/, m) {print m[1];}' \
-			"${EROOT%/}${JABBER_ETC}/ejabberd.yml"); do
-		[[ -f ${cert} ]] && return 0
-	done
-
+# Check if we are missing a default certificate.
+ejabberd_cert_missing() {
+	if grep -q "^\s*- ${EJABBERD_CERT}" "${EROOT%/}${JABBER_ETC}/ejabberd.yml"; then
+		if [[ -f "${EROOT%/}${EJABBERD_CERT}" ]]; then
+			# default certificate is present in config and exists - not installing
+			return 1
+		else
+			# default certificate is present in config
+			# but doesn't exist - need to install one
+			return 0
+		fi
+	fi
+	# no default certificate in config - not installing
 	return 1
 }
 
@@ -303,7 +302,7 @@ pkg_postinst() {
 		echo
 	fi
 
-	if ! ejabberd_cert_exists; then
+	if ejabberd_cert_missing; then
 		ejabberd_cert_install
 	fi
 }
