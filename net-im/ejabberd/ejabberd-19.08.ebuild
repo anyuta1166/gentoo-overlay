@@ -69,7 +69,7 @@ JABBER_SPOOL="${EPREFIX}/var/spool/jabber"
 # Adjust example configuration file to Gentoo.
 # - Use our sample certificate.
 adjust_config() {
-	sed -rne "/certfiles/{p;a\  - ${EJABBERD_CERT}" -e ":a;n;/^\s+-/ba};p" \
+	sed -rne "/^certfiles:/{p;a\  - ${EJABBERD_CERT}" -e ":a;n;/^\s+-/ba};p" \
 		-i "${S}/ejabberd.yml.example" \
 		|| die 'failed to adjust example config'
 }
