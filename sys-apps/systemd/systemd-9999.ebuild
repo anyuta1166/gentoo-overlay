@@ -410,20 +410,6 @@ migrate_locale() {
 	fi
 }
 
-save_enabled_units() {
-	ENABLED_UNITS=()
-	type systemctl &>/dev/null || return
-	for x; do
-		if systemctl --quiet --root="${ROOT:-/}" is-enabled "${x}"; then
-			ENABLED_UNITS+=( "${x}" )
-		fi
-	done
-}
-
-pkg_preinst() {
-	save_enabled_units {machines,remote-{cryptsetup,fs}}.target getty@tty1.service
-}
-
 pkg_postinst() {
 	systemd_update_catalog
 
@@ -441,9 +427,9 @@ pkg_postinst() {
 
 	systemd_reenable systemd-networkd.service systemd-resolved.service
 
-	if [[ ${ENABLED_UNITS[@]} ]]; then
-		systemctl --root="${ROOT:-/}" enable "${ENABLED_UNITS[@]}"
-	fi
+	# enable some services by default
+	systemctl --root="${ROOT:-/}" enable getty@tty1.service
+	systemctl --root="${ROOT:-/}" enable remote-fs.target
 
 	if [[ -L ${EROOT}/var/lib/systemd/timesync ]]; then
 		rm "${EROOT}/var/lib/systemd/timesync"
