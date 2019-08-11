@@ -100,7 +100,7 @@ customize_epam_wrapper() {
 
 # Check if we are missing a default certificate.
 ejabberd_cert_missing() {
-	if grep -q "^\s\+- ${EJABBERD_CERT}" "${EROOT%/}${JABBER_ETC}/ejabberd.yml"; then
+	if grep -qs "^\s\+- ${EJABBERD_CERT}" "${EROOT%/}${JABBER_ETC}/ejabberd.yml"; then
 		if [[ -f "${EROOT%/}${EJABBERD_CERT}" ]]; then
 			# default certificate is present in config and exists - not installing
 			return 1
