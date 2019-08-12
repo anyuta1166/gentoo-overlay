@@ -68,6 +68,7 @@ src_configure() {
 		$(use_enable sctp)
 		$(use_with ssl ssl "${EPREFIX}"/usr)
 		$(use_enable ssl dynamic-ssl-lib)
+		$(use_enable systemd)
 		$(usex wxwidgets "--with-wx-config=${WX_CONFIG}" "--with-wxdir=/dev/null")
 	)
 	econf "${myconf[@]}"
