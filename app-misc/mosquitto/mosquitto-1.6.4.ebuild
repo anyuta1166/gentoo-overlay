@@ -13,7 +13,7 @@ SRC_URI="https://mosquitto.org/files/source/${P}.tar.gz"
 LICENSE="EPL-1.0"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~x86"
-IUSE="bridge examples +persistence +srv ssl tcpd test websockets"
+IUSE="bridge examples +persistence +srv ssl systemd tcpd test websockets"
 
 REQUIRED_USE="test? ( bridge )"
 
@@ -35,6 +35,7 @@ _emake() {
 		WITH_BRIDGE="$(usex bridge)" \
 		WITH_PERSISTENCE="$(usex persistence)" \
 		WITH_SRV="$(usex srv)" \
+		WITH_SYSTEMD="$(usex systemd)" \
 		WITH_TLS="$(usex ssl)" \
 		WITH_WEBSOCKETS="$(usex websockets)" \
 		WITH_WRAP="$(usex tcpd)" \
@@ -84,7 +85,7 @@ src_install() {
 	_emake DESTDIR="${D}" prefix=/usr install
 	keepdir /var/lib/mosquitto
 	fowners mosquitto:mosquitto /var/lib/mosquitto
-	dodoc readme.md CONTRIBUTING.md ChangeLog.txt SECURITY.md
+	dodoc readme.md CONTRIBUTING.md ChangeLog.txt
 	doinitd "${FILESDIR}"/mosquitto
 	insinto /etc/mosquitto
 	doins mosquitto.conf
