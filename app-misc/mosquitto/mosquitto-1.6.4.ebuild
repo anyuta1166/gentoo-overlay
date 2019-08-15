@@ -84,7 +84,7 @@ src_install() {
 	_emake DESTDIR="${D}" prefix=/usr install
 	keepdir /var/lib/mosquitto
 	fowners mosquitto:mosquitto /var/lib/mosquitto
-	dodoc readme.md CONTRIBUTING.md ChangeLog.txt
+	dodoc readme.md CONTRIBUTING.md ChangeLog.txt SECURITY.md
 	doinitd "${FILESDIR}"/mosquitto
 	insinto /etc/mosquitto
 	doins mosquitto.conf
