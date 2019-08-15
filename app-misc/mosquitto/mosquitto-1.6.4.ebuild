@@ -89,7 +89,7 @@ src_install() {
 	doinitd "${FILESDIR}"/mosquitto
 	insinto /etc/mosquitto
 	doins mosquitto.conf
-	systemd_dounit "${FILESDIR}/mosquitto.service"
+	systemd_newunit service/systemd/mosquitto.service.notify mosquitto.service
 
 	if use examples; then
 		docompress -x "/usr/share/doc/${PF}/examples"
