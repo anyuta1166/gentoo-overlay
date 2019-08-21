@@ -136,7 +136,9 @@ get_ejabberd_path() {
 make_ejabberd_service() {
 	sed -r \
 		-e 's!@ctlscriptpath@!/usr/sbin!g' \
-		-e 's!(User|Group)=(.*)!\1=jabber!' \
+		-e 's!^(User|Group)=(.*)!\1=jabber!' \
+		-e 's!^(After)=(.*)!\1=epmd.service network.target!' \
+		-e '/^After=/ a Requires=epmd.service' \
 		"${PN}.service.template" >"${PN}.service" \
 		|| die 'failed to make ejabberd.service'
 }
