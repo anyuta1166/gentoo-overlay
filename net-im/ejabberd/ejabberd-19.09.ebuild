@@ -74,7 +74,7 @@ adjust_config() {
 	sed -rne "/^#?\s+certfiles:/{p;a\  - ${EJABBERD_CERT}" -e ":a;n;/^#?\s+-/ba};p" \
 		-i "${S}/ejabberd.yml.example" \
 		|| die 'failed to adjust example config'
-	sed -rne 's/^#\s+(certfiles)/\1/' \
+	sed -re 's/^#\s+(certfiles)/\1/' \
 		-i "${S}/ejabberd.yml.example" \
 		|| die 'failed to adjust example config'
 }
