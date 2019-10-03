@@ -3,6 +3,6 @@
 <pkgmetadata>
 	<!-- maintainer-needed -->
 	<upstream>
-		<remote-id type="github">processone/yconf</remote-id>
+		<remote-id type="github">processone/p1_acme</remote-id>
 	</upstream>
 </pkgmetadata>
