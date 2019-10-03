@@ -31,7 +31,7 @@ DEPEND=">=dev-lang/erlang-19.3[hipe?,odbc?,ssl]
 	>=dev-erlang/eimp-1.0.12
 	>=dev-erlang/fast_tls-1.1.2
 	>=dev-erlang/fast_xml-1.1.37
-	>=dev-erlang/fast_yaml-1.0.20
+	>=dev-erlang/fast_yaml-1.0.21
 	>=dev-erlang/yconf-1.0.1
 	>=dev-erlang/jiffy-0.14.8
 	>=dev-erlang/jose-1.8.4
