@@ -18,7 +18,14 @@ DEPEND=">=dev-lang/erlang-17.1
 	>=dev-erlang/jiffy-1.0.1
 	>=dev-erlang/yconf-1.0.1
 	>=dev-erlang/idna-6.0.0
-	>=dev-erlang/jose-1.9.0"
+	>=dev-erlang/jose-1.9.0
+	>=dev-erlang/base64url-1.0"
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG.md README.md )
+
+src_prepare() {
+	rebar_src_prepare
+	sed -i '/base64url/d' rebar.config.script
+}
+
