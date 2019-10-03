@@ -19,3 +19,5 @@ DEPEND=">=dev-lang/erlang-18.0
 RDEPEND="${DEPEND}"
 
 DOCS=( CHANGELOG README.md )
+
+S="${WORKDIR}/erlang-idna-${PV}"
