@@ -14,7 +14,7 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
-DEPEND=">=dev-lang/erlang-17.1
+DEPEND=">=dev-lang/erlang-18.0
 	>=dev-erlang/unicode_util_compat-0.4.1"
 RDEPEND="${DEPEND}"
 
