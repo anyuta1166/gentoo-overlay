@@ -26,6 +26,6 @@ DOCS=( CHANGELOG.md README.md )
 
 src_prepare() {
 	rebar_src_prepare
-	sed -i '/base64url/d' rebar.config.script
+	sed -ire 's/\+\+ \[\{base64url.*//' rebar.config.script
 }
 
