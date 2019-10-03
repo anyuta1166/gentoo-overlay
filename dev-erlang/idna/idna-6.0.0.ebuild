@@ -21,3 +21,8 @@ RDEPEND="${DEPEND}"
 DOCS=( CHANGELOG README.md )
 
 S="${WORKDIR}/erlang-idna-${PV}"
+
+src_prepare() {
+	rebar_src_prepare
+	rm rebar.config.script || die
+}
