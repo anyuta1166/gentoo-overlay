@@ -60,8 +60,7 @@ RDEPEND="${DEPEND}
 
 DOCS=( CHANGELOG.md README.md )
 PATCHES=( "${FILESDIR}/${PN}-19.08-ejabberdctl.patch"
-	"${FILESDIR}/${PN}-19.08-0002-Dont-overwrite-service-file.patch"
-	"${FILESDIR}/${P}-dont-verify-http-host-in-web-admin.patch" )
+	"${FILESDIR}/${PN}-19.08-0002-Dont-overwrite-service-file.patch" )
 
 EJABBERD_CERT="${EPREFIX}/etc/ssl/ejabberd/server.pem"
 # Paths in net-im/jabber-base
