@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -14,7 +14,7 @@ SRC_URI="https://www.process-one.net/downloads/${PN}/${PV}/${P}.tgz
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
+#KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 REQUIRED_USE="mssql? ( odbc )"
 # TODO: Add 'tools' flag.
 IUSE="captcha debug full-xml hipe ldap mssql mysql odbc pam postgres redis
@@ -27,34 +27,35 @@ RESTRICT="test"
 # TODO:		>=dev-erlang/luerl-0.3
 # TODO: )
 DEPEND=">=dev-lang/erlang-19.3[hipe?,odbc?,ssl]
-	>=dev-erlang/cache_tab-1.0.20
-	>=dev-erlang/eimp-1.0.12
-	>=dev-erlang/fast_tls-1.1.2
-	>=dev-erlang/fast_xml-1.1.37
-	>=dev-erlang/fast_yaml-1.0.21
-	>=dev-erlang/yconf-1.0.1
-	>=dev-erlang/jiffy-0.14.8
-	>=dev-erlang/jose-1.8.4
+	>=dev-erlang/cache_tab-1.0.22
+	>=dev-erlang/eimp-1.0.14
+	>=dev-erlang/fast_tls-1.1.4
+	>=dev-erlang/fast_xml-1.1.39
+	>=dev-erlang/fast_yaml-1.0.23
+	>=dev-erlang/yconf-1.0.3
+	>=dev-erlang/jiffy-1.0.1
+	>=dev-erlang/jose-1.9.0
 	>=dev-erlang/lager-3.6.10
-	>=dev-erlang/p1_oauth2-0.6.5
-	>=dev-erlang/p1_utils-1.0.16
-	>=dev-erlang/stringprep-1.0.17
-	>=dev-erlang/xmpp-1.4.2
-	>=dev-erlang/pkix-1.0.4
-	>=dev-erlang/mqtree-1.0.5
+	>=dev-erlang/p1_oauth2-0.6.6
+	>=dev-erlang/p1_utils-1.0.18
+	>=dev-erlang/stringprep-1.0.19
+	>=dev-erlang/xmpp-1.4.5
+	>=dev-erlang/pkix-1.0.5
+	>=dev-erlang/mqtree-1.0.7
 	>=dev-erlang/idna-6.0.0
-	>=dev-erlang/p1_acme-1.0.1
+	>=dev-erlang/p1_acme-1.0.4
+	>=dev-erlang/base64url-1.0
 	>=net-im/jabber-base-0.01
 	ldap? ( =net-nds/openldap-2* )
-	mysql? ( >=dev-erlang/p1_mysql-1.0.11 )
+	mysql? ( >=dev-erlang/p1_mysql-1.0.13 )
 	odbc? ( dev-db/unixODBC )
-	pam? ( >=dev-erlang/epam-1.0.6 )
-	postgres? ( >=dev-erlang/p1_pgsql-1.1.8 )
+	pam? ( >=dev-erlang/epam-1.0.7 )
+	postgres? ( >=dev-erlang/p1_pgsql-1.1.9 )
 	redis? ( >=dev-erlang/eredis-1.0.8 )
-	sip? ( >=dev-erlang/esip-1.0.30 )
+	sip? ( >=dev-erlang/esip-1.0.32 )
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
-	stun? ( >=dev-erlang/stun-1.0.29 )
-	zlib? ( >=dev-erlang/ezlib-1.0.6 )"
+	stun? ( >=dev-erlang/stun-1.0.31 )
+	zlib? ( >=dev-erlang/ezlib-1.0.7 )"
 RDEPEND="${DEPEND}
 	captcha? ( media-gfx/imagemagick[truetype,png] )"
 
