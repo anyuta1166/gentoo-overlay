@@ -62,7 +62,6 @@ RDEPEND="${DEPEND}
 DOCS=( CHANGELOG.md README.md )
 PATCHES=( "${FILESDIR}/${PN}-19.08-ejabberdctl.patch"
 	"${FILESDIR}/${PN}-19.08-0002-Dont-overwrite-service-file.patch"
-	"${FILESDIR}/${PN}-20.01-Revert-Support-custom-base-path-in-WebAdmin.patch"
 	"${FILESDIR}/${PN}-20.02-Fix-handle-of-http-atom-in-Headers.patch" )
 
 EJABBERD_CERT="${EPREFIX}/etc/ssl/ejabberd/server.pem"
