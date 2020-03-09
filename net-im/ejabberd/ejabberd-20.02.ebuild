@@ -14,7 +14,7 @@ SRC_URI="https://www.process-one.net/downloads/${PN}/${PV}/${P}.tgz
 
 LICENSE="GPL-2"
 SLOT="0"
-#KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
+KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 REQUIRED_USE="mssql? ( odbc )"
 # TODO: Add 'tools' flag.
 IUSE="captcha debug full-xml hipe ldap mssql mysql odbc pam postgres redis
@@ -62,6 +62,7 @@ RDEPEND="${DEPEND}
 DOCS=( CHANGELOG.md README.md )
 PATCHES=( "${FILESDIR}/${PN}-19.08-ejabberdctl.patch"
 	"${FILESDIR}/${PN}-19.08-0002-Dont-overwrite-service-file.patch"
+	"${FILESDIR}/${PN}-20.01-Revert-Support-custom-base-path-in-WebAdmin.patch"
 	"${FILESDIR}/${PN}-20.02-Fix-handle-of-http-atom-in-Headers.patch" )
 
 EJABBERD_CERT="${EPREFIX}/etc/ssl/ejabberd/server.pem"
