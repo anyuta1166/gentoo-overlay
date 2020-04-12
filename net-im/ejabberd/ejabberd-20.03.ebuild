@@ -9,7 +9,7 @@ inherit eutils pam rebar ssl-cert systemd
 
 DESCRIPTION="Robust, scalable and extensible XMPP server"
 HOMEPAGE="https://www.ejabberd.im/ https://github.com/processone/ejabberd/"
-SRC_URI="https://www.process-one.net/downloads/${PN}/${PV}/${P}.tgz
+SRC_URI="https://static.process-one.net/${PN}/downloads/${PV}/${P}.tgz
 	-> ${P}.tar.gz"
 
 LICENSE="GPL-2"
