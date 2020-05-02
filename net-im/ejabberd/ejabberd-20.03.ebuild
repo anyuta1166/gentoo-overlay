@@ -276,37 +276,13 @@ pkg_postinst() {
 		elog "For configuration instructions, please see"
 		elog "  https://docs.ejabberd.im/"
 		echo
-		if [[ " ${REPLACING_VERSIONS} " =~ \ 2\. ]]; then
-			ewarn "If you have used pubsub in ejabberd-2.* you may encounter issues after"
-			ewarn "migration to ${PV}. pubsub data may not be migrated automatically and"
-			ewarn "you may need to run migration script manually, see:"
-			ewarn
-			ewarn "  https://github.com/processone/ejabberd/issues/479#issuecomment-124497456"
-			ewarn
-			ewarn "In case you don't care about all stored moods, activities, geoinfo and you"
-			ewarn "know you don't store in pubsub anything important, you can just remove"
-			ewarn "pubsub tables:"
-			ewarn
-			ewarn "  rm ${EROOT%/}${JABBER_SPOOL}/pubsub_*"
-			ewarn
-			ewarn "See also: https://bugs.gentoo.org/show_bug.cgi?id=588244"
-			echo
-		fi
-	elif [[ -f ${EROOT}etc/jabber/ejabberd.cfg ]]; then
-		elog "Ejabberd now defaults to using a YAML format for its config file."
-		elog "The old ejabberd.cfg file can be converted using the following instructions:"
-		echo
-		elog "1. Make sure all processes related to the previous version of ejabberd aren't"
-		elog "   running. Usually this just means the ejabberd and epmd daemons and possibly"
-		elog "   the pam-related process (epam) if pam support is enabled."
-		elog "2. Run \`ejabberdctl start\` with sufficient permissions. Note that this can"
-		elog "   fail to start ejabberd properly for various reasons. Check ejabberd's main"
-		elog "   log file at /var/log/jabber/ejabberd.log to confirm it started successfully."
-		elog "3. Run"
-		elog "     \`ejabberdctl convert_to_yaml /etc/jabber/ejabberd.cfg /etc/jabber/ejabberd.yml.new\`"
-		elog "   with sufficient permissions, edit and rename /etc/jabber/ejabberd.yml.new to"
-		elog "   /etc/jabber/ejabberd.yml, and finally restart ejabberd with the new config"
-		elog "   file."
+	fi
+	if [[ " ${REPLACING_VERSIONS} " =~ \ 17\. ]]; then
+		ewarn If you are updating from an older version like 17.x
+		ewarn you may need to add an access_rules section to your
+		ewarn ejabberd.yml config file.
+		ewarn Otherwise authentication will be broken and users
+		ewarn will not be able to log in.
 		echo
 	fi
 
