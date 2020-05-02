@@ -16,8 +16,8 @@ KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 RDEPEND=">=dev-lang/erlang-20.0
 	>=dev-erlang/ezlib-1.0.7
-	>=dev-erlang/fast_tls-1.1.4
-	>=dev-erlang/fast_xml-1.1.39
+	>=dev-erlang/fast_tls-1.1.5
+	>=dev-erlang/fast_xml-1.1.40
 	>=dev-erlang/p1_utils-1.0.18
 	>=dev-erlang/stringprep-1.0.19
 	>=dev-erlang/idna-6.0.0"

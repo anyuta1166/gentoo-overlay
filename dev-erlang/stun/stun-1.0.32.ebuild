@@ -15,7 +15,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 DEPEND=">=dev-lang/erlang-17.1
-	>=dev-erlang/fast_tls-1.1.4
+	>=dev-erlang/fast_tls-1.1.5
 	>=dev-erlang/p1_utils-1.0.18"
 RDEPEND="${DEPEND}"
 
