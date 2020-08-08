@@ -2,12 +2,12 @@
 <!DOCTYPE repositories SYSTEM "/dtd/repositories.dtd">
 <repositories xmlns="" version="1.0">
 	<repo quality="experimental" status="unofficial">
-		<name>vampik</name>
-		<description>Vampik's Gentoo overlay</description>
-		<homepage>https://github.com/vampik/gentoo-overlay</homepage>
+		<name>anyuta1166</name>
+		<description>Anyuta's Gentoo overlay</description>
+		<homepage>https://github.com/anyuta1166/gentoo-overlay</homepage>
 		<owner type="person">
 			<email>vamp@vampik.ru</email>
 		</owner>
-		<source type="git">https://github.com/vampik/gentoo-overlay.git</source>
+		<source type="git">https://github.com/anyuta1166/gentoo-overlay.git</source>
 	</repo>
 </repositories>
