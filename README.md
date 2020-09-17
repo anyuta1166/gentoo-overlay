@@ -4,7 +4,14 @@
 
         # eselect repository add anyuta1166 git https://github.com/anyuta1166/gentoo-overlay.git
 
-* Using layman (deprecated):
+**The repository contents**
 
-        # wget -O /etc/layman/overlays/anyuta1166.xml https://raw.github.com/anyuta1166/gentoo-overlay/master/repo.xml
-        # layman -a anyuta1166
+*app-misc/mosquitto*
+
+* add systemd USE flag to compile with systemd support if present
+* use systemd unit file provided by the upstream
+
+*net-firewall/iptables*
+
+* use custom systemd unit file\
+  Gentoo bug: [#555920](https://bugs.gentoo.org/555920) (no answer)
