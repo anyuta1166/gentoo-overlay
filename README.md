@@ -15,3 +15,7 @@
 
 * use custom systemd unit file\
   Gentoo bug: [#555920](https://bugs.gentoo.org/555920) (no answer)
+
+*net-misc/netctl*
+
+* continue to maintain package removed from Gentoo tree
