@@ -1,4 +1,4 @@
-# Copyright 1999-2018 Gentoo Foundation
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
@@ -6,7 +6,7 @@ EAPI=6
 # Force users doing their own patches to install their own tools
 AUTOTOOLS_AUTO_DEPEND=no
 
-inherit ltprune multilib systemd toolchain-funcs autotools flag-o-matic
+inherit ltprune multilib systemd toolchain-funcs autotools flag-o-matic usr-ldscript
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
 HOMEPAGE="https://www.netfilter.org/projects/iptables/"
@@ -16,7 +16,7 @@ LICENSE="GPL-2"
 # Subslot tracks libxtables as that's the one other packages generally link
 # against and iptables changes.  Will have to revisit if other sonames change.
 SLOT="0/12"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sparc ~x86"
 IUSE="conntrack ipv6 netlink nftables pcap static-libs"
 
 COMMON_DEPEND="
@@ -98,11 +98,11 @@ src_install() {
 	doins include/iptables/internal.h
 
 	keepdir /var/lib/iptables
-	newinitd "${FILESDIR}"/${PN}-1.6.2.init iptables
+	newinitd "${FILESDIR}"/${PN}-r1.init iptables
 	newconfd "${FILESDIR}"/${PN}-1.4.13.confd iptables
 	if use ipv6 ; then
 		keepdir /var/lib/ip6tables
-		newinitd "${FILESDIR}"/iptables-1.6.2.init ip6tables
+		newinitd "${FILESDIR}"/iptables-r1.init ip6tables
 		newconfd "${FILESDIR}"/ip6tables-1.4.13.confd ip6tables
 	fi
 
@@ -111,10 +111,10 @@ src_install() {
 		rm "${ED%/}"/etc/ethertypes || die
 	fi
 
-	systemd_newunit "${FILESDIR}"/systemd/iptables-1.6.2.service iptables.service
+	systemd_newunit "${FILESDIR}"/systemd/iptables-r1.service iptables.service
 	systemd_install_serviced "${FILESDIR}"/systemd/iptables.service.conf
 	if use ipv6 ; then
-		systemd_newunit "${FILESDIR}"/systemd/ip6tables-1.6.2.service ip6tables.service
+		systemd_newunit "${FILESDIR}"/systemd/ip6tables-r1.service ip6tables.service
 		systemd_install_serviced "${FILESDIR}"/systemd/ip6tables.service.conf
 	fi
 
