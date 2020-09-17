@@ -32,7 +32,7 @@ RDEPEND="
 	>=net-dns/openresolv-3.5.4-r1
 	sys-apps/iproute2
 	>=sys-apps/systemd-233
-	!<net-misc/dhcpcd-6.4.0
+	!<net-misc/dhcpcd-9.0.0
 "
 
 src_prepare() {
@@ -58,12 +58,13 @@ pkg_postinst() {
 	if [[ -z ${REPLACING_VERSIONS} ]]; then
 		elog "To get additional features, a number of optional runtime dependencies may be"
 		elog "installed."
-		optfeature "DHCP support" net-misc/dhcpcd ">=net-misc/dhcp-5.6.7[client]"
-		optfeature "WPA support" net-wireless/wpa_supplicant
+		optfeature "DHCP support" ">=net-misc/dhcpcd-9.0.0" ">=net-misc/dhcp-5.6.7[client]"
+		optfeature "wireless networking support" net-wireless/wpa_supplicant
 		optfeature "interactive assistant" dev-util/dialog
-		optfeature "automatic connection" sys-apps/ifplugd
-		optfeature "bonding support" net-misc/ifenslave
-		optfeature "dialup support" net-dialup/ppp
+		optfeature "automatic wired connections" sys-apps/ifplugd
+		optfeature "PPP connections support" net-dialup/ppp
+		optfeature "Open vSwitch support" net-misc/openvswitch
+		optfeature "WireGuard support" net-vpn/wireguard-tools
 	fi
 	for v in ${REPLACING_VERSIONS}; do
 		if ver_test "${v}" -lt "1.18" || ver_test "${v}" -eq "9999"; then
