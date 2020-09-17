@@ -1,30 +1,37 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-PYTHON_COMPAT=( python3_7 )
+PYTHON_COMPAT=( python3_{6,7,8} )
 
-inherit python-any-r1 systemd toolchain-funcs user
+inherit python-any-r1 systemd toolchain-funcs
 
 DESCRIPTION="An Open Source MQTT v3 Broker"
-HOMEPAGE="https://mosquitto.org/"
+HOMEPAGE="https://mosquitto.org/ https://github.com/eclipse/mosquitto"
 SRC_URI="https://mosquitto.org/files/source/${P}.tar.gz"
 
 LICENSE="EPL-1.0"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~x86"
-IUSE="bridge examples +persistence +srv ssl systemd tcpd test websockets"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
+IUSE="bridge examples libressl +persistence +srv ssl tcpd test websockets"
+RESTRICT="!test? ( test )"
 
 REQUIRED_USE="test? ( bridge )"
 
-RDEPEND="srv? ( net-dns/c-ares:= )
-	ssl? ( dev-libs/openssl:0= )
+RDEPEND="
+	acct-user/mosquitto
+	acct-group/mosquitto
+	srv? ( net-dns/c-ares:= )
+	ssl? (
+		!libressl? ( dev-libs/openssl:0= )
+		libressl? ( dev-libs/libressl:0= )
+	)
 	tcpd? ( sys-apps/tcp-wrappers )"
 
 DEPEND="${PYTHON_DEPS}
 	${RDEPEND}
 	test? ( dev-util/cunit )
-	websockets? ( net-libs/libwebsockets )"
+	websockets? ( net-libs/libwebsockets[lejp] )"
 
 _emake() {
 	local LIBDIR=$(get_libdir)
@@ -35,16 +42,10 @@ _emake() {
 		WITH_BRIDGE="$(usex bridge)" \
 		WITH_PERSISTENCE="$(usex persistence)" \
 		WITH_SRV="$(usex srv)" \
-		WITH_SYSTEMD="$(usex systemd)" \
 		WITH_TLS="$(usex ssl)" \
 		WITH_WEBSOCKETS="$(usex websockets)" \
 		WITH_WRAP="$(usex tcpd)" \
 		"$@"
-}
-
-pkg_setup() {
-	enewgroup mosquitto
-	enewuser mosquitto -1 -1 -1 mosquitto
 }
 
 src_prepare() {
@@ -67,7 +68,9 @@ src_prepare() {
 		-e '/02-subpub-qos2-bad-puback-1.py/d' \
 		-e '/02-subpub-qos2-bad-puback-2.py/d' \
 		-e '/02-subpub-qos2-bad-pubcomp.py/d' \
-		-e '/11-message-expiry.py/d' test/broker/Makefile || die
+		test/broker/Makefile || die
+	sed -i -e '/02-subscribe-qos1-async2.test/d' \
+		test/lib/Makefile || die
 
 	python_setup
 	python_fix_shebang test
@@ -89,7 +92,7 @@ src_install() {
 	doinitd "${FILESDIR}"/mosquitto
 	insinto /etc/mosquitto
 	doins mosquitto.conf
-	systemd_newunit service/systemd/mosquitto.service.notify mosquitto.service
+	systemd_dounit "${FILESDIR}/mosquitto.service"
 
 	if use examples; then
 		docompress -x "/usr/share/doc/${PF}/examples"
