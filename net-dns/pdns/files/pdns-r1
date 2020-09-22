@@ -27,7 +27,7 @@ command_args_foreground="--daemon=no"
 command_args_background="--daemon=yes"
 yesno ${rc_verbose} || command_args_background="${command_args_background} >/dev/null 2>&1"
 
-pidfile="${PDNS_CHROOTDIR}/${PDNS_SOCKETDIR}/pdns${PDNS_INSTANCE:+-${PDNS_INSTANCE}}.pid"
+pidfile="${PDNS_CHROOTDIR}/${PDNS_SOCKETDIR}/pdns/pdns${PDNS_INSTANCE:+-${PDNS_INSTANCE}}.pid"
 
 control_command="/usr/bin/pdns_control"
 control_command_args="${command_args}"
