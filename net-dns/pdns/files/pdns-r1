@@ -10,7 +10,7 @@ PDNS_STOP_TIMEOUT="${PDNS_STOP_TIMEOUT:-10}"
 PDNS_CONFIG="${PDNS_CONFIGDIR}/pdns${PDNS_INSTANCE:+-${PDNS_INSTANCE}}.conf"
 PDNS_CHROOTDIR="$( awk -F = '$1 == "chroot" { print $2 }' "${PDNS_CONFIG}" )"
 PDNS_SOCKETDIR="$( awk -F = '$1 == "socket-dir" { print $2 }' "${PDNS_CONFIG}" )"
-[ -z "${PDNS_SOCKETDIR}" -a -z "${PDNS_CHROOTDIR}" ] && PDNS_SOCKETDIR="/var/run"
+[ -z "${PDNS_SOCKETDIR}" -a -z "${PDNS_CHROOTDIR}" ] && PDNS_SOCKETDIR="/var/run/pdns"
 
 name="PowerDNS Authoritative Server${PDNS_INSTANCE:+ (${PDNS_INSTANCE})}"
 description="Authoritative name server"
@@ -27,7 +27,7 @@ command_args_foreground="--daemon=no"
 command_args_background="--daemon=yes"
 yesno ${rc_verbose} || command_args_background="${command_args_background} >/dev/null 2>&1"
 
-pidfile="${PDNS_CHROOTDIR}/${PDNS_SOCKETDIR}/pdns/pdns${PDNS_INSTANCE:+-${PDNS_INSTANCE}}.pid"
+pidfile="${PDNS_CHROOTDIR}/${PDNS_SOCKETDIR}/pdns${PDNS_INSTANCE:+-${PDNS_INSTANCE}}.pid"
 
 control_command="/usr/bin/pdns_control"
 control_command_args="${command_args}"
