@@ -18,7 +18,7 @@
 
 *net-dns/pdns*
 
-* fix configuration directory & file permissions\
+* fix /etc/powerdns permissions\
   Gentoo bug: [#604920](https://bugs.gentoo.org/604920)
 * fix PID file path in OpenRC script\
   Gentoo bug: [#742962](https://bugs.gentoo.org/742962)
