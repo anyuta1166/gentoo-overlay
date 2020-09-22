@@ -122,6 +122,9 @@ src_install() {
 }
 
 pkg_postinst() {
+	chown -R root:pdns ${EROOT}/etc/powerdns || die
+	chmod 750 ${EROOT}/etc/powerdns || die
+	chmod 640 ${EROOT}/etc/powerdns/pdns.conf || die
 	elog "PowerDNS provides multiple instances support. You can create more instances"
 	elog "by symlinking the pdns init script to another name."
 	elog
