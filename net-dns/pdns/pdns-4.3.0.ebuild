@@ -93,8 +93,8 @@ src_install() {
 
 	mv "${D}"/etc/powerdns/pdns.conf{-dist,}
 
-	fperms 0700 /etc/powerdns
-	fperms 0600 /etc/powerdns/pdns.conf
+	fperms 0750 /etc/powerdns
+	fperms 0640 /etc/powerdns/pdns.conf
 
 	# set defaults: setuid=pdns, setgid=pdns
 	sed -i \
