@@ -25,4 +25,9 @@
 
 *net-misc/netctl*
 
-* continue to maintain package removed from Gentoo tree
+* maintain the package that was removed from Gentoo tree
+
+*net-im/ejabberd*\
+*dev-erlang/\**
+
+* maintain ejabberd and its dependencies
