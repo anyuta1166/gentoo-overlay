@@ -11,6 +11,10 @@
 * add systemd USE flag to compile with systemd support if present
 * use systemd unit file provided by the upstream
 
+*dev-erlang/\**
+
+* maintain ejabberd dependencies
+
 *net-firewall/iptables*
 
 * use custom systemd unit file\
@@ -23,10 +27,9 @@
 * fix PID file path in OpenRC script\
   Gentoo bug: [#742962](https://bugs.gentoo.org/742962)
 
-*net-im/ejabberd*\
-*dev-erlang/\**
+*net-im/ejabberd*
 
-* maintain ejabberd and its dependencies
+* maintain ejabberd
 
 *net-misc/netctl*
 
