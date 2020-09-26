@@ -1,0 +1,501 @@
+From da78ad6446eb1695f5c6f0d4bedea3c39c39e115 Mon Sep 17 00:00:00 2001
+From: Andrew Shu <talklittle@gmail.com>
+Date: Mon, 6 Jul 2020 17:57:03 -0700
+Subject: [PATCH 1/2] Add crypto compat wrapper for OTP 23 deprecations
+
+---
+ include/jose_compat.hrl                     | 15 +++-
+ src/jose_chacha20_poly1305_crypto.erl       |  2 +-
+ src/jose_crypto_compat.erl                  | 92 +++++++++++++++++++++
+ src/jose_public_key.erl                     | 16 ++--
+ src/jose_server.erl                         | 24 ++++--
+ src/jose_xchacha20_poly1305_crypto.erl      |  4 +-
+ src/jwa/jose_jwa.erl                        |  4 +-
+ src/jwa/jose_jwa_aes.erl                    | 12 +--
+ src/jwa/jose_jwa_concat_kdf.erl             |  2 +-
+ src/jwa/jose_jwa_pkcs1.erl                  |  2 +-
+ src/jwa/jose_jwa_pkcs5.erl                  |  4 +-
+ src/jwe/jose_jwe_enc_aes.erl                |  4 +-
+ src/jwk/jose_jwk_kty_oct.erl                |  2 +-
+ test/property_test/jose_jwa_pkcs1_props.erl |  2 +-
+ 14 files changed, 145 insertions(+), 40 deletions(-)
+ create mode 100644 src/jose_crypto_compat.erl
+
+diff --git a/include/jose_compat.hrl b/include/jose_compat.hrl
+index fd838b5..9f561c4 100644
+--- a/include/jose_compat.hrl
++++ b/include/jose_compat.hrl
+@@ -12,11 +12,18 @@
+ -ifndef(JOSE_COMPAT_HRL).
+ 
+ -ifdef(OTP_RELEASE). %% this implies OTP 21 or higher
+--define(COMPAT_CATCH(Class, Reason, Stacktrace), Class:Reason:Stacktrace).
+--define(COMPAT_GET_STACKTRACE(Stacktrace), Stacktrace).
++    -define(COMPAT_CATCH(Class, Reason, Stacktrace), Class:Reason:Stacktrace).
++    -define(COMPAT_GET_STACKTRACE(Stacktrace), Stacktrace).
++
++    -if(?OTP_RELEASE >= 23).
++        -define(JOSE_CRYPTO_OTP_23, true).
++    -elif(?OTP_RELEASE < 23).
++        -define(JOSE_CRYPTO_OTP_23, false).
++    -endif.
+ -else.
+--define(COMPAT_CATCH(Class, Reason, _), Class:Reason).
+--define(COMPAT_GET_STACKTRACE(_), erlang:get_stacktrace()).
++    -define(COMPAT_CATCH(Class, Reason, _), Class:Reason).
++    -define(COMPAT_GET_STACKTRACE(_), erlang:get_stacktrace()).
++    -define(JOSE_CRYPTO_OTP_23, false).
+ -endif.
+ 
+ -define(JOSE_COMPAT_HRL, 1).
+diff --git a/src/jose_chacha20_poly1305_crypto.erl b/src/jose_chacha20_poly1305_crypto.erl
+index 938bf2f..f0ee7d4 100644
+--- a/src/jose_chacha20_poly1305_crypto.erl
++++ b/src/jose_chacha20_poly1305_crypto.erl
+@@ -44,7 +44,7 @@ encrypt(PlainText, AAD, IV, CEK) ->
+ 
+ authenticate(Message, Key, Nonce) ->
+ 	OTK = jose_jwa_chacha20_poly1305:poly1305_key_gen(Key, Nonce),
+-	crypto:poly1305(OTK, Message).
++	jose_crypto_compat:mac(poly1305, OTK, Message).
+ 
+ verify(MAC, Message, Key, Nonce) ->
+ 	Challenge = jose_jwa_chacha20_poly1305:authenticate(Message, Key, Nonce),
+diff --git a/src/jose_crypto_compat.erl b/src/jose_crypto_compat.erl
+new file mode 100644
+index 0000000..8868eb5
+--- /dev/null
++++ b/src/jose_crypto_compat.erl
+@@ -0,0 +1,92 @@
++%% -*- mode: erlang; tab-width: 4; indent-tabs-mode: 1; st-rulers: [70] -*-
++%% vim: ts=4 sw=4 ft=erlang noet
++%%%-------------------------------------------------------------------
++%%% @author Andrew Bennett <potatosaladx@gmail.com>
++%%% @copyright 2014-2020, Andrew Bennett
++%%% @doc
++%%%
++%%% @end
++%%%-------------------------------------------------------------------
++-module(jose_crypto_compat).
++
++-include("jose_compat.hrl").
++
++%% API
++-export([crypto_init/4]).
++-export([crypto_one_time/4]).
++-export([crypto_one_time/5]).
++-export([crypto_update_encrypt/2]).
++-export([mac/3]).
++-export([mac/4]).
++
++%%====================================================================
++%% API functions
++%%====================================================================
++
++-if(?JOSE_CRYPTO_OTP_23). %% "New API" for OTP 23 and higher
++
++crypto_init(Cipher, Key, IV, FlagOrOptions) ->
++    crypto:crypto_init(Cipher, Key, IV, FlagOrOptions).
++
++crypto_one_time(Cipher, Key, Data, FlagOrOptions) ->
++    crypto:crypto_one_time(Cipher, Key, Data, FlagOrOptions).
++
++crypto_one_time(Cipher, Key, IV, Data, FlagOrOptions) ->
++    crypto:crypto_one_time(Cipher, Key, IV, Data, FlagOrOptions).
++
++crypto_update_encrypt(State, Data) ->
++    Result = crypto:crypto_update(State, Data),
++    {State, Result}.
++
++mac(Type, Key, Data) ->
++    crypto:mac(Type, Key, Data).
++
++mac(Type, SubType, Key, Data) ->
++    crypto:mac(Type, SubType, Key, Data).
++
++-elif(true). %% "Old API" for OTP 22 and earlier
++
++crypto_init(Cipher, Key, IV, _FlagOrOptions) ->
++    crypto:stream_init(legacy_cipher_iv(Cipher), Key, IV).
++
++crypto_one_time(Cipher, Key, Data, true) ->
++    crypto:block_encrypt(legacy_cipher_no_iv(Cipher), Key, Data);
++crypto_one_time(Cipher, Key, Data, false) ->
++    crypto:block_decrypt(legacy_cipher_no_iv(Cipher), Key, Data).
++
++crypto_one_time(Cipher, Key, IV, Data, true) ->
++    crypto:block_encrypt(legacy_cipher_iv(Cipher), Key, IV, Data);
++crypto_one_time(Cipher, Key, IV, Data, false) ->
++    crypto:block_decrypt(legacy_cipher_iv(Cipher), Key, IV, Data).
++
++crypto_update_encrypt(State, Data) ->
++    crypto:stream_encrypt(State, Data).
++
++mac(poly1305, Key, Data) ->
++    crypto:poly1305(Key, Data).
++
++mac(hmac, SubType, Key, Data) ->
++    crypto:hmac(SubType, Key, Data).
++
++-endif.
++
++%%%-------------------------------------------------------------------
++%%% Internal functions
++%%%-------------------------------------------------------------------
++
++-if(not ?JOSE_CRYPTO_OTP_23).
++
++legacy_cipher_no_iv(aes_128_ecb) -> aes_ecb;
++legacy_cipher_no_iv(aes_192_ecb) -> aes_ecb;
++legacy_cipher_no_iv(aes_256_ecb) -> aes_ecb;
++legacy_cipher_no_iv(Cipher) -> Cipher.
++
++legacy_cipher_iv(aes_128_cbc) -> aes_cbc128;
++legacy_cipher_iv(aes_192_cbc) -> aes_cbc192;
++legacy_cipher_iv(aes_256_cbc) -> aes_cbc256;
++legacy_cipher_iv(aes_128_ctr) -> aes_ctr;
++legacy_cipher_iv(aes_192_ctr) -> aes_ctr;
++legacy_cipher_iv(aes_256_ctr) -> aes_ctr;
++legacy_cipher_iv(Cipher) -> Cipher.
++
++-endif.
+\ No newline at end of file
+diff --git a/src/jose_public_key.erl b/src/jose_public_key.erl
+index e9ae6af..4000990 100644
+--- a/src/jose_public_key.erl
++++ b/src/jose_public_key.erl
+@@ -366,7 +366,7 @@ pem_dec_entry(Start, Lines) ->
+ %% @private
+ decode_encrypted_private_keyinfo(Der) ->
+ 	#'EncryptedPrivateKeyInfo'{encryptionAlgorithm = AlgorithmInfo, encryptedData = Data} = der_decode('EncryptedPrivateKeyInfo', Der),
+-	DecryptParams = decrypt_parameters(AlgorithmInfo), 
++	DecryptParams = decrypt_parameters(AlgorithmInfo),
+ 	{true, {'PrivateKeyInfo', Data, DecryptParams}}.
+ 
+ %% @private
+@@ -624,31 +624,31 @@ pem_entry_enc1(_, _, _) ->
+ %% @private
+ pem_cipher(Data, {Cipher = "AES-128-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_encrypt(aes_cbc128, Key, IV, jose_jwa_pkcs7:pad(Data))};
++	{true, jose_crypto_compat:crypto_one_time(aes_128_cbc, Key, IV, jose_jwa_pkcs7:pad(Data), true)};
+ pem_cipher(Data, {Cipher = "AES-192-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_encrypt(aes_cbc192, Key, IV, jose_jwa_pkcs7:pad(Data))};
++	{true, jose_crypto_compat:crypto_one_time(aes_192_cbc, Key, IV, jose_jwa_pkcs7:pad(Data), true)};
+ pem_cipher(Data, {Cipher = "AES-256-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_encrypt(aes_cbc256, Key, IV, jose_jwa_pkcs7:pad(Data))};
++	{true, jose_crypto_compat:crypto_one_time(aes_256_cbc, Key, IV, jose_jwa_pkcs7:pad(Data), true)};
+ pem_cipher(_, _, _) ->
+ 	false.
+ 
+ %% @private
+ pem_decipher(Data, {Cipher = "AES-128-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_decrypt(aes_cbc128, Key, IV, Data)};
++	{true, jose_crypto_compat:crypto_one_time(aes_128_cbc, Key, IV, Data, false)};
+ pem_decipher(Data, {Cipher = "AES-192-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_decrypt(aes_cbc192, Key, IV, Data)};
++	{true, jose_crypto_compat:crypto_one_time(aes_192_cbc, Key, IV, Data, false)};
+ pem_decipher(Data, {Cipher = "AES-256-CBC", KeyDevParams}, Password) ->
+ 	{Key, IV} = password_to_key_and_iv(Password, Cipher, KeyDevParams),
+-	{true, crypto:block_decrypt(aes_cbc256, Key, IV, Data)};
++	{true, jose_crypto_compat:crypto_one_time(aes_256_cbc, Key, IV, Data, false)};
+ pem_decipher(_, _, _) ->
+ 	false.
+ 
+ %% @private
+-ceiling(Float) -> 
++ceiling(Float) ->
+ 	erlang:round(Float + 0.5).
+ 
+ %% @private
+diff --git a/src/jose_server.erl b/src/jose_server.erl
+index 413a8f0..dbc3b60 100644
+--- a/src/jose_server.erl
++++ b/src/jose_server.erl
+@@ -494,7 +494,7 @@ check_crypto(Fallback, Entries) ->
+ 				{{cipher, {Cipher, KeySize}}, {crypto, CryptoCipher}}
+ 		end
+ 	end || Cipher <- Ciphers, KeySize <- KeySizes],
+-	CipherEntries1 = 
++	CipherEntries1 =
+ 		case lists:keyfind(chacha20_poly1305_module, 1, Entries) of
+ 			{chacha20_poly1305_module, jose_chacha20_poly1305_unsupported} ->
+ 				CipherEntries0 ++ [{{cipher, {chacha20_poly1305, 256}}, {Fallback, {chacha20_poly1305, 256}}}];
+@@ -643,7 +643,7 @@ has_cipher(aes_cbc, KeySize) ->
+ 	PlainText = jose_jwa_pkcs7:pad(<<>>),
+ 	case has_block_cipher(aes_cbc, {Key, IV, PlainText}) of
+ 		false ->
+-			Cipher = list_to_atom("aes_cbc" ++ integer_to_list(KeySize)),
++			Cipher = list_to_atom("aes_" ++ integer_to_list(KeySize) ++ "_cbc"),
+ 			has_block_cipher(Cipher, {Key, IV, PlainText});
+ 		Other ->
+ 			Other
+@@ -657,13 +657,19 @@ has_cipher(aes_gcm, KeySize) ->
+ 	IV = << 0:96 >>,
+ 	AAD = <<>>,
+ 	PlainText = jose_jwa_pkcs7:pad(<<>>),
+-	has_block_cipher(aes_gcm, {Key, IV, AAD, PlainText}).
++	case has_block_cipher(aes_gcm, {Key, IV, AAD, PlainText}) of
++		false ->
++			Cipher = list_to_atom("aes_" ++ integer_to_list(KeySize) ++ "_gcm"),
++			has_block_cipher(Cipher, {Key, IV, AAD, PlainText});
++		Other ->
++			Other
++	end.
+ 
+ %% @private
+ has_block_cipher(Cipher, {Key, PlainText}) ->
+-	case catch crypto:block_encrypt(Cipher, Key, PlainText) of
++	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, PlainText, true) of
+ 		CipherText when is_binary(CipherText) ->
+-			case catch crypto:block_decrypt(Cipher, Key, CipherText) of
++			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, CipherText, false) of
+ 				PlainText ->
+ 					{true, Cipher};
+ 				_ ->
+@@ -673,9 +679,9 @@ has_block_cipher(Cipher, {Key, PlainText}) ->
+ 			false
+ 	end;
+ has_block_cipher(Cipher, {Key, IV, PlainText}) ->
+-	case catch crypto:block_encrypt(Cipher, Key, IV, PlainText) of
++	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, PlainText, true) of
+ 		CipherText when is_binary(CipherText) ->
+-			case catch crypto:block_decrypt(Cipher, Key, IV, CipherText) of
++			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, CipherText, false) of
+ 				PlainText ->
+ 					{true, Cipher};
+ 				_ ->
+@@ -685,9 +691,9 @@ has_block_cipher(Cipher, {Key, IV, PlainText}) ->
+ 			false
+ 	end;
+ has_block_cipher(Cipher, {Key, IV, AAD, PlainText}) ->
+-	case catch crypto:block_encrypt(Cipher, Key, IV, {AAD, PlainText}) of
++	case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, {AAD, PlainText}, true) of
+ 		{CipherText, CipherTag} when is_binary(CipherText) andalso is_binary(CipherTag) ->
+-			case catch crypto:block_decrypt(Cipher, Key, IV, {AAD, CipherText, CipherTag}) of
++			case catch jose_crypto_compat:crypto_one_time(Cipher, Key, IV, {AAD, CipherText, CipherTag}, false) of
+ 				PlainText ->
+ 					{true, Cipher};
+ 				_ ->
+diff --git a/src/jose_xchacha20_poly1305_crypto.erl b/src/jose_xchacha20_poly1305_crypto.erl
+index 238cc47..a0b4839 100644
+--- a/src/jose_xchacha20_poly1305_crypto.erl
++++ b/src/jose_xchacha20_poly1305_crypto.erl
+@@ -23,10 +23,10 @@
+ %%====================================================================
+ 
+ decrypt(CipherText, CipherTag, AAD, IV, CEK) ->
+-	crypto:block_decrypt(xchacha20_poly1305, CEK, IV, {AAD, CipherText, CipherTag}).
++	jose_crypto_compat:crypto_one_time(xchacha20_poly1305, CEK, IV, {AAD, CipherText, CipherTag}, false).
+ 
+ encrypt(PlainText, AAD, IV, CEK) ->
+-	crypto:block_encrypt(xchacha20_poly1305, CEK, IV, {AAD, PlainText}).
++	jose_crypto_compat:crypto_one_time(xchacha20_poly1305, CEK, IV, {AAD, PlainText}, true).
+ 
+ authenticate(Message, Key, Nonce) ->
+ 	jose_jwa_xchacha20_poly1305:authenticate(Message, Key, Nonce).
+diff --git a/src/jwa/jose_jwa.erl b/src/jwa/jose_jwa.erl
+index af7c4fd..71c1a17 100644
+--- a/src/jwa/jose_jwa.erl
++++ b/src/jwa/jose_jwa.erl
+@@ -57,7 +57,7 @@ block_decrypt(Cipher, Key, CipherText)
+ 		when is_binary(CipherText) ->
+ 	case block_cipher(Cipher) of
+ 		{crypto, aes_ecb} ->
+-			<< << (crypto:block_decrypt(aes_ecb, Key, Block))/binary >> || << Block:128/bitstring >> <= CipherText >>;
++			<< << (jose_crypto_compat:crypto_one_time(aes_128_ecb, Key, Block, false))/binary >> || << Block:128/bitstring >> <= CipherText >>;
+ 		{Module, BlockCipher} ->
+ 			Module:block_decrypt(BlockCipher, Key, CipherText)
+ 	end.
+@@ -66,7 +66,7 @@ block_encrypt(Cipher, Key, PlainText)
+ 		when is_binary(PlainText) ->
+ 	case block_cipher(Cipher) of
+ 		{crypto, aes_ecb} ->
+-			<< << (crypto:block_encrypt(aes_ecb, Key, Block))/binary >> || << Block:128/bitstring >> <= PlainText >>;
++			<< << (jose_crypto_compat:crypto_one_time(aes_128_ecb, Key, Block, true))/binary >> || << Block:128/bitstring >> <= PlainText >>;
+ 		{Module, BlockCipher} ->
+ 			Module:block_encrypt(BlockCipher, Key, PlainText)
+ 	end.
+diff --git a/src/jwa/jose_jwa_aes.erl b/src/jwa/jose_jwa_aes.erl
+index 2f7dcaf..eefcf8b 100644
+--- a/src/jwa/jose_jwa_aes.erl
++++ b/src/jwa/jose_jwa_aes.erl
+@@ -372,8 +372,8 @@ gcm_block_decrypt(H, K, IV, A, C, T) ->
+ 		_ ->
+ 			gcm_ghash(H, <<>>, IV)
+ 	end,
+-	S0 = crypto:stream_init(aes_ctr, K, Y0),
+-	{S1, EKY0xor} = crypto:stream_encrypt(S0, Y0),
++	S0 = jose_crypto_compat:crypto_init(aes_ctr, K, Y0, true),
++	{S1, EKY0xor} = jose_crypto_compat:crypto_update_encrypt(S0, Y0),
+ 	EKY0 = crypto:exor(EKY0xor, Y0),
+ 	<< Y0int:128/unsigned-big-integer-unit:1 >> = Y0,
+ 	Y1 = << (Y0int + 1):128/unsigned-big-integer-unit:1 >>,
+@@ -396,8 +396,8 @@ gcm_block_encrypt(H, K, IV, A, P) ->
+ 		_ ->
+ 			gcm_ghash(H, <<>>, IV)
+ 	end,
+-	S0 = crypto:stream_init(aes_ctr, K, Y0),
+-	{S1, EKY0xor} = crypto:stream_encrypt(S0, Y0),
++	S0 = jose_crypto_compat:crypto_init(aes_ctr, K, Y0, true),
++	{S1, EKY0xor} = jose_crypto_compat:crypto_update_encrypt(S0, Y0),
+ 	EKY0 = crypto:exor(EKY0xor, Y0),
+ 	<< Y0int:128/unsigned-big-integer-unit:1 >> = Y0,
+ 	Y1 = << (Y0int + 1):128/unsigned-big-integer-unit:1 >>,
+@@ -410,7 +410,7 @@ gcm_block_encrypt(H, K, IV, A, P) ->
+ gcm_exor(_S, _Y, <<>>, C) ->
+ 	C;
+ gcm_exor(S0, Y0, << B:128/bitstring, P/bitstring >>, C0) ->
+-	{S1, EKY0xor} = crypto:stream_encrypt(S0, Y0),
++	{S1, EKY0xor} = jose_crypto_compat:crypto_update_encrypt(S0, Y0),
+ 	EKY0 = crypto:exor(EKY0xor, Y0),
+ 	<< Y0int:128/unsigned-big-integer-unit:1 >> = Y0,
+ 	Y1 = << (Y0int + 1):128/unsigned-big-integer-unit:1 >>,
+@@ -418,7 +418,7 @@ gcm_exor(S0, Y0, << B:128/bitstring, P/bitstring >>, C0) ->
+ 	gcm_exor(S1, Y1, P, C1);
+ gcm_exor(S0, Y0, P, C0) ->
+ 	PBits = bit_size(P),
+-	{_S1, EKY0xor} = crypto:stream_encrypt(S0, Y0),
++	{_S1, EKY0xor} = jose_crypto_compat:crypto_update_encrypt(S0, Y0),
+ 	<< EKY0:PBits/bitstring, _/bitstring >> = crypto:exor(EKY0xor, Y0),
+ 	C1 = << C0/binary, (crypto:exor(P, EKY0))/binary >>,
+ 	C1.
+diff --git a/src/jwa/jose_jwa_concat_kdf.erl b/src/jwa/jose_jwa_concat_kdf.erl
+index f4b4cfa..25289e5 100644
+--- a/src/jwa/jose_jwa_concat_kdf.erl
++++ b/src/jwa/jose_jwa_concat_kdf.erl
+@@ -106,5 +106,5 @@ resolve_hash(DigestType) when is_atom(DigestType) ->
+ 	end;
+ resolve_hash({hmac, DigestType, Key}) when is_atom(DigestType) ->
+ 	fun(Data) ->
+-		crypto:hmac(DigestType, Key, Data)
++		jose_crypto_compat:mac(hmac, DigestType, Key, Data)
+ 	end.
+diff --git a/src/jwa/jose_jwa_pkcs1.erl b/src/jwa/jose_jwa_pkcs1.erl
+index ba88f03..6023881 100644
+--- a/src/jwa/jose_jwa_pkcs1.erl
++++ b/src/jwa/jose_jwa_pkcs1.erl
+@@ -954,7 +954,7 @@ resolve_hash(DigestType) when is_atom(DigestType) ->
+ 	end;
+ resolve_hash({hmac, DigestType, Key}) when is_atom(DigestType) ->
+ 	fun(Data) ->
+-		crypto:hmac(DigestType, Key, Data)
++		jose_crypto_compat:mac(hmac, DigestType, Key, Data)
+ 	end.
+ 
+ %% @private
+diff --git a/src/jwa/jose_jwa_pkcs5.erl b/src/jwa/jose_jwa_pkcs5.erl
+index ac5ecdb..70a9d27 100644
+--- a/src/jwa/jose_jwa_pkcs5.erl
++++ b/src/jwa/jose_jwa_pkcs5.erl
+@@ -127,7 +127,7 @@ resolve_hash(DigestType) when is_atom(DigestType) ->
+ 	end;
+ resolve_hash({hmac, DigestType, Key}) when is_atom(DigestType) ->
+ 	fun(Data) ->
+-		crypto:hmac(DigestType, Key, Data)
++		jose_crypto_compat:mac(hmac, DigestType, Key, Data)
+ 	end.
+ 
+ %% @private
+@@ -137,5 +137,5 @@ resolve_mac(DigestType) when is_atom(DigestType) ->
+ 	resolve_mac({hmac, DigestType});
+ resolve_mac({hmac, DigestType}) when is_atom(DigestType) ->
+ 	fun(Key, Data) ->
+-		crypto:hmac(DigestType, Key, Data)
++		jose_crypto_compat:mac(hmac, DigestType, Key, Data)
+ 	end.
+diff --git a/src/jwe/jose_jwe_enc_aes.erl b/src/jwe/jose_jwe_enc_aes.erl
+index 6c815ac..5b23b43 100644
+--- a/src/jwe/jose_jwe_enc_aes.erl
++++ b/src/jwe/jose_jwe_enc_aes.erl
+@@ -162,7 +162,7 @@ block_decrypt({AAD, CipherText, CipherTag}, CEK, IV, #jose_jwe_enc_aes{
+ 	<< MacKey:MacLen/binary, EncKey:EncLen/binary >> = CEK,
+ 	AADLength = << (bit_size(AAD)):1/unsigned-big-integer-unit:64 >>,
+ 	MacData = << AAD/binary, IV/binary, CipherText/binary, AADLength/binary >>,
+-	case crypto:hmac(HMAC, MacKey, MacData) of
++	case jose_crypto_compat:mac(hmac, HMAC, MacKey, MacData) of
+ 		<< CipherTag:TagLen/binary, _/binary >> ->
+ 			PlainText = jose_jwa_pkcs7:unpad(jose_jwa:block_decrypt(Cipher, EncKey, IV, CipherText)),
+ 			PlainText;
+@@ -191,7 +191,7 @@ block_encrypt({AAD, PlainText}, CEK, IV, #jose_jwe_enc_aes{
+ 	CipherText = jose_jwa:block_encrypt(Cipher, EncKey, IV, jose_jwa_pkcs7:pad(PlainText)),
+ 	AADLength = << (bit_size(AAD)):1/unsigned-big-integer-unit:64 >>,
+ 	MacData = << AAD/binary, IV/binary, CipherText/binary, AADLength/binary >>,
+-	<< CipherTag:TagLen/binary, _/binary >> = crypto:hmac(HMAC, MacKey, MacData),
++	<< CipherTag:TagLen/binary, _/binary >> = jose_crypto_compat:mac(hmac, HMAC, MacKey, MacData),
+ 	{CipherText, CipherTag}.
+ 
+ next_cek(#jose_jwe_enc_aes{cek_len=CEKLen}) ->
+diff --git a/src/jwk/jose_jwk_kty_oct.erl b/src/jwk/jose_jwk_kty_oct.erl
+index cb1ac17..0b45eb5 100644
+--- a/src/jwk/jose_jwk_kty_oct.erl
++++ b/src/jwk/jose_jwk_kty_oct.erl
+@@ -120,7 +120,7 @@ derive_key(Key) ->
+ 
+ sign(Message, JWSALG, Key) when is_atom(JWSALG) ->
+ 	DigestType = jws_alg_to_digest_type(JWSALG),
+-	crypto:hmac(DigestType, Key, Message);
++	jose_crypto_compat:mac(hmac, DigestType, Key, Message);
+ sign(Message, {'Poly1305', Nonce}, Key) ->
+ 	jose_chacha20_poly1305:authenticate(Message, Key, Nonce);
+ sign(_Message, JWSALG, _Key) ->
+diff --git a/test/property_test/jose_jwa_pkcs1_props.erl b/test/property_test/jose_jwa_pkcs1_props.erl
+index 1669042..778f35e 100644
+--- a/test/property_test/jose_jwa_pkcs1_props.erl
++++ b/test/property_test/jose_jwa_pkcs1_props.erl
+@@ -137,4 +137,4 @@ prop_rsassa_pss_sign_and_verify_with_salt() ->
+ do_hash(DigestType, PlainText) when is_atom(DigestType) ->
+ 	crypto:hash(DigestType, PlainText);
+ do_hash({hmac, DigestType, Key}, PlainText) ->
+-	crypto:hmac(DigestType, Key, PlainText).
++	jose_crypto_compat:mac(hmac, DigestType, Key, PlainText).
+
+From 1c487303d5fc8e70b58b22bcdf5f94a4b59019ef Mon Sep 17 00:00:00 2001
+From: Andrew Shu <talklittle@gmail.com>
+Date: Mon, 6 Jul 2020 18:07:56 -0700
+Subject: [PATCH 2/2] Specify jsx git tag to ensure Makefile exists
+
+---
+ Makefile  | 2 +-
+ erlang.mk | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index ef95772..8b74e9a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,7 +6,7 @@ TEST_DEPS = jiffy jsone jsx libdecaf libsodium ojson proper
+ 
+ dep_jiffy = git git://github.com/davisp/jiffy.git master
+ dep_jsone = git git://github.com/sile/jsone.git master
+-dep_jsx = git git://github.com/talentdeficit/jsx.git master
++dep_jsx = git git://github.com/talentdeficit/jsx.git v2.10.0
+ dep_keccakf1600 = git git://github.com/potatosalad/erlang-keccakf1600.git master
+ dep_libdecaf = git git://github.com/potatosalad/erlang-libdecaf.git master
+ dep_libsodium = git git://github.com/potatosalad/erlang-libsodium.git master
+diff --git a/erlang.mk b/erlang.mk
+index ffc5c65..b312ad4 100644
+--- a/erlang.mk
++++ b/erlang.mk
+@@ -18,7 +18,7 @@ ERLANG_MK_FILENAME := $(realpath $(lastword $(MAKEFILE_LIST)))
+ export ERLANG_MK_FILENAME
+ 
+ ERLANG_MK_VERSION = 4508aa0-dirty
+-ERLANG_MK_WITHOUT = 
++ERLANG_MK_WITHOUT =
+ 
+ # Make 3.81 and 3.82 are deprecated.
+ 
+@@ -2327,7 +2327,7 @@ pkg_jsx_description = An Erlang application for consuming, producing and manipul
+ pkg_jsx_homepage = https://github.com/talentdeficit/jsx
+ pkg_jsx_fetch = git
+ pkg_jsx_repo = https://github.com/talentdeficit/jsx
+-pkg_jsx_commit = master
++pkg_jsx_commit = v2.10.0
+ 
+ PACKAGES += kafka
+ pkg_kafka_name = kafka

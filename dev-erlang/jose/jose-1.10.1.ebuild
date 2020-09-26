@@ -26,3 +26,8 @@ DOCS=( ALGORITHMS.md CHANGELOG.md README.md examples/KEY-GENERATION.md )
 RESTRICT=test
 
 S="${WORKDIR}/erlang-${P}"
+
+# patch for erlang 23 compatibiltiy
+# https://github.com/potatosalad/erlang-jose/issues/87
+# https://github.com/potatosalad/erlang-jose/pull/93
+PATCHES=( "${FILESDIR}"/${PN}-crypto-compat-wrapper-for-OTP-23.patch )
