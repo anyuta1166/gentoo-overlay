@@ -23,11 +23,11 @@
 * fix PID file path in OpenRC script\
   Gentoo bug: [#742962](https://bugs.gentoo.org/742962)
 
-*net-misc/netctl*
-
-* maintain the package that was removed from Gentoo tree
-
 *net-im/ejabberd*\
 *dev-erlang/\**
 
 * maintain ejabberd and its dependencies
+
+*net-misc/netctl*
+
+* maintain the package that was removed from Gentoo tree
