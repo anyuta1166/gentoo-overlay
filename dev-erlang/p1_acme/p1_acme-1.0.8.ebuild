@@ -15,8 +15,8 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~ia64 ~ppc ~sparc ~x86"
 
 DEPEND=">=dev-lang/erlang-17.1
-	>=dev-erlang/jiffy-1.0.1
-	>=dev-erlang/yconf-1.0.4
+	>=dev-erlang/jiffy-1.0.5
+	>=dev-erlang/yconf-1.0.7
 	>=dev-erlang/idna-6.0.0
 	>=dev-erlang/jose-1.9.0
 	>=dev-erlang/base64url-1.0"
