@@ -1,0 +1,27 @@
+diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
+--- a/sapi/fpm/fpm/fpm_main.c	2019-07-26 14:45:45.415108812 +0200
++++ b/sapi/fpm/fpm/fpm_main.c	2019-07-26 14:47:10.575381188 +0200
+@@ -1329,13 +1329,14 @@
+ 	/* INI stuff */
+ 	ini = FCGI_GETENV(request, "PHP_VALUE");
+ 	if (ini) {
+-		int mode = ZEND_INI_USER;
++		int mode = ZEND_INI_PERDIR;
+ 		char *tmp;
+ 		spprintf(&tmp, 0, "%s\n", ini);
+ 		zend_parse_ini_string(tmp, 1, ZEND_INI_SCANNER_NORMAL, (zend_ini_parser_cb_t)fastcgi_ini_parser, &mode);
+ 		efree(tmp);
+ 	}
+ 
++#if 0
+ 	ini = FCGI_GETENV(request, "PHP_ADMIN_VALUE");
+ 	if (ini) {
+ 		int mode = ZEND_INI_SYSTEM;
+@@ -1344,6 +1345,7 @@
+ 		zend_parse_ini_string(tmp, 1, ZEND_INI_SCANNER_NORMAL, (zend_ini_parser_cb_t)fastcgi_ini_parser, &mode);
+ 		efree(tmp);
+ 	}
++#endif
+ }
+ /* }}} */
+ 

@@ -18,7 +18,7 @@ diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
  		zlog(ZLOG_ERROR, "Passing INI directive through FastCGI: empty key");
  		return;
  	}
-@@ -1392,10 +1391,7 @@
+@@ -1392,10 +1391,8 @@
  		return;
  	}
  
@@ -26,7 +26,8 @@ diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
 -	kv.value = value;
 -	kv.next = NULL;
 -	if (fpm_php_apply_defines_ex(&kv, *mode) == -1) {
-+	if (zend_alter_ini_entry(Z_STR_P(arg1), Z_STR_P(arg2), *mode, PHP_INI_STAGE_HTACCESS) == FAILURE) {
++	// zend_string of arg2 is marked persistent but releasing doesn't know. so pass the internal char*
++	if (zend_alter_ini_entry_chars(Z_STR_P(arg1), value, Z_STRLEN_P(arg2), *mode, PHP_INI_STAGE_HTACCESS) == FAILURE) {
  		zlog(ZLOG_ERROR, "Passing INI directive through FastCGI: unable to set '%s'", key);
  	}
  }

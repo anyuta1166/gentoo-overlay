@@ -1,13 +1,14 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
 
 inherit flag-o-matic systemd autotools
 
+MY_PV=${PV/_rc/RC}
 DESCRIPTION="The PHP language runtime engine"
-HOMEPAGE="https://php.net/"
-SRC_URI="https://php.net/distributions/${P}.tar.xz"
+HOMEPAGE="https://www.php.net/"
+SRC_URI="https://www.php.net/distributions/${P}.tar.xz"
 
 LICENSE="PHP-3.01
 	BSD
@@ -18,7 +19,9 @@ LICENSE="PHP-3.01
 	unicode? ( BSD-2 LGPL-2.1 )"
 
 SLOT="$(ver_cut 1-2)"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~amd64-fbsd ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos"
+
+S="${WORKDIR}/${PN}-${MY_PV}"
 
 # We can build the following SAPIs in the given order
 SAPIS="embed cli cgi fpm apache2 phpdbg"
@@ -31,7 +34,7 @@ IUSE="${IUSE}
 IUSE="${IUSE} acl argon2 bcmath berkdb bzip2 calendar cdb cjk
 	coverage +ctype curl debug
 	enchant exif +fileinfo +filter firebird
-	flatfile ftp gd gdbm gmp +hash +iconv imap inifile
+	+flatfile ftp gd gdbm gmp +hash +iconv imap inifile
 	intl iodbc ipv6 +json kerberos ldap ldap-sasl libedit libressl lmdb
 	mhash mssql mysql mysqli nls
 	oci8-instant-client odbc +opcache pcntl pdo +phar +posix postgres qdbm
@@ -45,10 +48,9 @@ IUSE="${IUSE} acl argon2 bcmath berkdb bzip2 calendar cdb cjk
 # the ones that can be detected to avoid a repeat of bug #564824.
 COMMON_DEPEND="
 	>=app-eselect/eselect-php-0.9.1[apache2?,fpm?]
-	>=dev-libs/libpcre-8.32[unicode]
+	>=dev-libs/libpcre2-10.30[unicode]
 	fpm? ( acl? ( sys-apps/acl ) )
-	apache2? ( || ( >=www-servers/apache-2.4[apache2_modules_unixd,threads=]
-		<www-servers/apache-2.4[threads=] ) )
+	apache2? ( www-servers/apache[apache2_modules_unixd(+),threads=] )
 	argon2? ( app-crypt/argon2:= )
 	berkdb? ( || (	sys-libs/db:5.3
 					sys-libs/db:5.1
@@ -62,17 +64,17 @@ COMMON_DEPEND="
 	curl? ( >=net-misc/curl-7.10.5 )
 	enchant? ( <app-text/enchant-2.0:0 )
 	firebird? ( dev-db/firebird )
-	gd? ( virtual/jpeg:0 media-libs/libpng:0= sys-libs/zlib )
+	gd? ( >=virtual/jpeg-0-r3:0 media-libs/libpng:0= >=sys-libs/zlib-1.2.0.4 )
 	gdbm? ( >=sys-libs/gdbm-1.8.0:0= )
 	gmp? ( dev-libs/gmp:0= )
 	iconv? ( virtual/libiconv )
-	imap? ( virtual/imap-c-client[kerberos=,ssl=] )
+	imap? ( >=virtual/imap-c-client-2[kerberos=,ssl=] )
 	intl? ( dev-libs/icu:= )
 	iodbc? ( dev-db/libiodbc )
 	kerberos? ( virtual/krb5 )
 	ldap? ( >=net-nds/openldap-1.2.11 )
 	ldap-sasl? ( dev-libs/cyrus-sasl >=net-nds/openldap-1.2.11 )
-	libedit? ( || ( sys-freebsd/freebsd-lib dev-libs/libedit ) )
+	libedit? ( dev-libs/libedit )
 	lmdb? ( dev-db/lmdb:= )
 	mssql? ( dev-db/freetds[mssql] )
 	nls? ( sys-devel/gettext )
@@ -90,7 +92,7 @@ COMMON_DEPEND="
 	spell? ( >=app-text/aspell-0.50 )
 	sqlite? ( >=dev-db/sqlite-3.7.6.3 )
 	ssl? (
-		!libressl? ( dev-libs/openssl:0= )
+		!libressl? ( >=dev-libs/openssl-1.0.1:0= )
 		libressl? ( dev-libs/libressl:0= )
 	)
 	tidy? ( || ( app-text/tidy-html5 app-text/htmltidy ) )
@@ -105,9 +107,9 @@ COMMON_DEPEND="
 	xmlwriter? ( >=dev-libs/libxml2-2.6.8 )
 	xpm? ( x11-libs/libXpm )
 	xslt? ( dev-libs/libxslt >=dev-libs/libxml2-2.6.8 )
-	zip? ( sys-libs/zlib:0= )
+	zip? ( >=sys-libs/zlib-1.2.0.4:0= )
 	zip-encryption? ( >=dev-libs/libzip-1.2.0:= )
-	zlib? ( sys-libs/zlib:0= )
+	zlib? ( >=sys-libs/zlib-1.2.0.4:0= )
 "
 
 RDEPEND="${COMMON_DEPEND}
@@ -148,15 +150,16 @@ REQUIRED_USE="
 	readline? ( !libedit )
 	recode? ( !imap !mysqli !mysql )
 	session-mm? ( session !threads )
-	mysql? ( hash || ( mysqli pdo ) )
-	mysqli? ( hash )
+	mysql? ( || ( mysqli pdo ) )
 	zip-encryption? ( zip )
 "
+
+RESTRICT="!test? ( test )"
+
 PATCHES=(
 	"${FILESDIR}/php-freetype-2.9.1.patch"
-	"${FILESDIR}/php-7.2.13-intl-use-icu-namespace.patch"
-	"${FILESDIR}/php-7.2.0-fpm-php_values-from-env.patch"
-	"${FILESDIR}/php-7.2.0-fpm-restore-ini-from-env.patch"
+	"${FILESDIR}/php-7.3.0-fpm-php_values-from-env.patch"
+	"${FILESDIR}/php-7.3.21-fpm-restore-ini-from-env.patch"
 )
 
 PHP_MV="$(ver_cut 1)"
@@ -181,7 +184,6 @@ php_install_ini() {
 	# Set the include path to point to where we want to find PEAR packages
 	sed -e 's|^;include_path = ".:/php/includes".*|include_path = ".:'"${EPREFIX}"'/usr/share/php'${PHP_MV}':'"${EPREFIX}"'/usr/share/php"|' -i "${phpinisrc}" || die
 
-	dodir "${PHP_INI_DIR#${EPREFIX}}"
 	insinto "${PHP_INI_DIR#${EPREFIX}}"
 	newins "${phpinisrc}" php.ini
 
@@ -195,7 +197,7 @@ php_install_ini() {
 		elog "Adding opcache to $PHP_EXT_INI_DIR"
 		echo "zend_extension=${PHP_DESTDIR}/$(get_libdir)/opcache.so" >> \
 			 "${D}/${PHP_EXT_INI_DIR}"/opcache.ini
-		dosym "${PHP_EXT_INI_DIR#${EPREFIX}}/opcache.ini" \
+		dosym "../ext/opcache.ini" \
 			  "${PHP_EXT_INI_DIR_ACTIVE#${EPREFIX}}/opcache.ini"
 	fi
 
@@ -442,6 +444,8 @@ src_configure() {
 	# Support the Apache2 extras, they must be set globally for all
 	# SAPIs to work correctly, especially for external PHP extensions
 
+	local one_sapi
+	local sapi
 	mkdir -p "${WORKDIR}/sapis-build" || die
 	for one_sapi in $SAPIS ; do
 		use "${one_sapi}" || continue
@@ -501,6 +505,7 @@ src_compile() {
 	addpredict /usr/share/snmp/mibs/.index #nowarn
 	addpredict /var/lib/net-snmp/mib_indexes #nowarn
 
+	local sapi
 	for sapi in ${SAPIS} ; do
 		if use "${sapi}"; then
 			cd "${WORKDIR}/sapis-build/$sapi" || \
@@ -515,7 +520,7 @@ src_install() {
 	addpredict /usr/share/snmp/mibs/.index #nowarn
 
 	# grab the first SAPI that got built and install common files from there
-	local first_sapi=""
+	local first_sapi="", sapi=""
 	for sapi in $SAPIS ; do
 		if use $sapi ; then
 			first_sapi=$sapi
@@ -536,7 +541,7 @@ src_install() {
 	# Create the directory where we'll put version-specific php scripts
 	keepdir "/usr/share/php${PHP_MV}"
 
-	local sapi="", file=""
+	local file=""
 	local sapi_list=""
 
 	for sapi in ${SAPIS}; do
@@ -558,6 +563,11 @@ src_install() {
 				case "$sapi" in
 					cli)
 						source="sapi/cli/php"
+						# Install the "phar" archive utility.
+						if use phar ; then
+							emake INSTALL_ROOT="${D}" install-pharcmd
+							dosym "..${dest#/usr}/bin/phar" "/usr/bin/phar${SLOT}"
+						fi
 						;;
 					cgi)
 						source="sapi/cgi/php-cgi"
@@ -581,7 +591,7 @@ src_install() {
 				else
 					dobin "${source}"
 					local name="$(basename ${source})"
-					dosym "${dest}/bin/${name}" "/usr/bin/${name}${SLOT}"
+					dosym "..${dest#/usr}/bin/${name}" "/usr/bin/${name}${SLOT}"
 				fi
 			fi
 
@@ -691,6 +701,7 @@ pkg_postinst() {
 	fi
 
 	# Create the symlinks for php
+	local m
 	for m in ${SAPIS}; do
 		[[ ${m} == 'embed' ]] && continue;
 		if use $m ; then
