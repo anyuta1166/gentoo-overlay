@@ -15,6 +15,11 @@
 
 * maintain ejabberd dependencies
 
+*dev-lang/php*
+
+* add the patch by Manuel Mausz to fix the many years old bug [#53611](https://bugs.php.net/bug.php?id=53611) (fastcgi_param PHP_VALUE pollutes other sites)
+* add the patch by Manuel Mausz that changes the mode of PHP_VALUE from ZEND_INI_USER to ZEND_INI_PERDIR and disables PHP_ADMIN_VALUE
+
 *net-firewall/iptables*
 
 * use custom systemd unit file\
