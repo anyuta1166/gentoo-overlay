@@ -19,4 +19,4 @@ RDEPEND="${DEPEND}"
 DOCS=( CHANGELOG.md NOTICE README.md )
 
 # Tests need rebar3. The build somewhat works with rebar2.
-# RESTRICT="test"
+RESTRICT="test"
