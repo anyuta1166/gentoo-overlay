@@ -52,7 +52,7 @@ DEPEND=">=dev-lang/erlang-19.3[hipe?,odbc?,ssl]
 	pam? ( >=dev-erlang/epam-1.0.7 )
 	postgres? ( >=dev-erlang/p1_pgsql-1.1.9 )
 	redis? ( >=dev-erlang/eredis-1.0.8 )
-	sip? ( >=dev-erlang/esip-1.0.32 )
+	sip? ( >=dev-erlang/esip-1.0.33 )
 	sqlite? ( >=dev-erlang/sqlite3-1.1.6 )
 	stun? ( >=dev-erlang/stun-1.0.32 )
 	zlib? ( >=dev-erlang/ezlib-1.0.7 )"
