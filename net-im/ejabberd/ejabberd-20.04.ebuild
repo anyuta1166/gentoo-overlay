@@ -33,7 +33,7 @@ DEPEND=">=dev-lang/erlang-19.3[hipe?,odbc?,ssl]
 	>=dev-erlang/fast_xml-1.1.40
 	>=dev-erlang/fast_yaml-1.0.24
 	>=dev-erlang/yconf-1.0.4
-	>=dev-erlang/jiffy-1.0.1
+	>=dev-erlang/jiffy-1.0.4
 	>=dev-erlang/jose-1.9.0
 	>=dev-erlang/lager-3.6.10
 	>=dev-erlang/p1_oauth2-0.6.6
@@ -47,7 +47,7 @@ DEPEND=">=dev-lang/erlang-19.3[hipe?,odbc?,ssl]
 	>=dev-erlang/base64url-1.0
 	>=net-im/jabber-base-0.01
 	ldap? ( =net-nds/openldap-2* )
-	mysql? ( >=dev-erlang/p1_mysql-1.0.14 )
+	mysql? ( >=dev-erlang/p1_mysql-1.0.15 )
 	odbc? ( dev-db/unixODBC )
 	pam? ( >=dev-erlang/epam-1.0.7 )
 	postgres? ( >=dev-erlang/p1_pgsql-1.1.9 )
