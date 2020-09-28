@@ -15,6 +15,10 @@
 
 * maintain ejabberd dependencies
 
+*dev-lang/erlang*
+
+* version bump
+
 *dev-lang/php*
 
 * add the patch by Manuel Mausz to fix the many years old bug [#53611](https://bugs.php.net/bug.php?id=53611) (fastcgi_param PHP_VALUE pollutes other sites)
