@@ -41,3 +41,7 @@
 *net-misc/netctl*
 
 * maintain the package that was removed from Gentoo tree
+
+*net-proxy/shadowsocks-libev*
+
+* use original sample config file
