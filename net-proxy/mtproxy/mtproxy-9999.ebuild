@@ -20,7 +20,7 @@ LICENSE="GPL-2+ LGPL-2+"
 SLOT="0"
 IUSE=""
 
-DEPEND="dev-libs/openssl:0=
+DEPEND="dev-libs/openssl:=
 	sys-libs/zlib"
 RDEPEND="${DEPEND}
 	net-misc/curl"
