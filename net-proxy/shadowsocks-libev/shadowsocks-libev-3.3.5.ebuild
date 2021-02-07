@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -20,7 +20,7 @@ KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 IUSE="debug doc"
 
 RDEPEND="net-libs/mbedtls:=
-	net-libs/libbloom
+	>=net-libs/libbloom-1.6
 	net-libs/libcork
 	net-libs/libcorkipset
 	>=dev-libs/libsodium-1.0.8:=
@@ -37,8 +37,11 @@ DEPEND="${RDEPEND}
 	"
 
 src_prepare() {
-	sed -i 's|AC_CONFIG_FILES(\[libbloom/Makefile libcork/Makefile libipset/Makefile\])||' \
+	sed -i -e 's|AC_CONFIG_FILES(\[libbloom/Makefile libcork/Makefile libipset/Makefile\])||' \
 		configure.ac || die
+	sed -i -e 's|-Werror||g' \
+		configure.ac src/Makefile.am || die
+
 	default
 	eautoreconf
 }
@@ -57,7 +60,6 @@ src_install() {
 
 	find "${D}" -name '*.la' -type f -delete || die
 
-	dodir "/etc/${PN}"
 	insinto "/etc/${PN}"
 	newins "debian/config.json" shadowsocks.json
 
@@ -69,10 +71,9 @@ src_install() {
 
 	dodoc -r acl
 
-	systemd_dounit "debian/${PN}-local@.service"
-	systemd_dounit "debian/${PN}-server@.service"
-	systemd_dounit "debian/${PN}-redir@.service"
-	systemd_dounit "debian/${PN}-tunnel@.service"
+	for i in debian/${PN}*.service; do
+		systemd_newunit $i $(basename $i)
+	done
 }
 
 pkg_setup() {
