@@ -12,8 +12,8 @@ SRC_URI="https://mosquitto.org/files/source/${P}.tar.gz"
 
 LICENSE="EPL-1.0"
 SLOT="0"
-KEYWORDS="amd64 arm ~arm64 x86"
-IUSE="bridge examples +persistence +srv ssl tcpd test websockets"
+KEYWORDS="~amd64 ~arm ~arm64 x86"
+IUSE="bridge examples +persistence +srv ssl systemd tcpd test websockets"
 RESTRICT="!test? ( test )"
 
 REQUIRED_USE="test? ( bridge )"
@@ -43,6 +43,7 @@ _emake() {
 		WITH_BRIDGE="$(usex bridge)" \
 		WITH_PERSISTENCE="$(usex persistence)" \
 		WITH_SRV="$(usex srv)" \
+		WITH_SYSTEMD="$(usex systemd)" \
 		WITH_TLS="$(usex ssl)" \
 		WITH_WEBSOCKETS="$(usex websockets)" \
 		WITH_WRAP="$(usex tcpd)" \
@@ -97,7 +98,7 @@ src_install() {
 	doins mosquitto.conf
 	insinto /usr/share/mosquitto
 	doins misc/letsencrypt/mosquitto-copy.sh
-	systemd_dounit "${FILESDIR}/mosquitto.service"
+	systemd_newunit service/systemd/mosquitto.service.notify mosquitto.service
 
 	if use examples; then
 		docompress -x "/usr/share/doc/${PF}/examples"
