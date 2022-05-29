@@ -1,0 +1,17 @@
+ src/rtl_433.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/rtl_433.c b/src/rtl_433.c
+index 463858e7..c4800d02 100644
+--- a/src/rtl_433.c
++++ b/src/rtl_433.c
+@@ -432,7 +432,9 @@ static void sdr_callback(unsigned char *iq_buf, uint32_t len, void *ctx)
+         if (demod->auto_level > 0 && demod->noise_level < demod->min_level - 3.0f
+                 && fabsf(demod->min_level_auto - demod->noise_level - 3.0f) > 1.0f) {
+             demod->min_level_auto = demod->noise_level + 3.0f;
++            if (cfg->report_noise) {
+             fprintf(stderr, "Estimated noise level is %.1f dB, adjusting minimum detection level to %.1f dB\n", demod->noise_level, demod->min_level_auto);
++              }
+             pulse_detect_set_levels(demod->pulse_detect, demod->use_mag_est, demod->level_limit, demod->min_level_auto, demod->min_snr, demod->detect_verbosity);
+         }
+     } else {
