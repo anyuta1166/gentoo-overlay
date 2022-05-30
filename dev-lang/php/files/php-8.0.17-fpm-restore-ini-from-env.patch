@@ -1,7 +1,7 @@
 diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
---- a/sapi/fpm/fpm/fpm_main.c	2018-07-31 16:33:06.000000000 +0200
-+++ b/sapi/fpm/fpm/fpm_main.c	2018-08-03 19:33:49.963098404 +0200
-@@ -1367,7 +1367,6 @@
+--- a/sapi/fpm/fpm/fpm_main.c	2020-07-24 12:31:20.340344624 +0200
++++ b/sapi/fpm/fpm/fpm_main.c	2020-07-24 12:31:56.755065935 +0200
+@@ -1359,7 +1359,6 @@
  	int *mode = (int *)arg;
  	char *key;
  	char *value = NULL;
@@ -9,7 +9,7 @@ diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
  
  	if (!mode || !arg1) return;
  
-@@ -1378,7 +1377,7 @@
+@@ -1370,7 +1369,7 @@
  
  	key = Z_STRVAL_P(arg1);
  
@@ -18,7 +18,7 @@ diff -Naur a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
  		zlog(ZLOG_ERROR, "Passing INI directive through FastCGI: empty key");
  		return;
  	}
-@@ -1392,10 +1391,8 @@
+@@ -1384,10 +1383,8 @@
  		return;
  	}
  
