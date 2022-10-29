@@ -1,0 +1,40 @@
+From de7ba8113af0cf6f8b62646404921318b4fe42fc Mon Sep 17 00:00:00 2001
+From: Lubomir Host <lubomir.host@gmail.com>
+Date: Sun, 20 Nov 2016 01:23:10 +0100
+Subject: [PATCH] Send subject only if defined
+
+---
+ sendxmpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/sendxmpp b/sendxmpp
+index 1713671..a961b12 100755
+--- a/sendxmpp
++++ b/sendxmpp
+@@ -305,7 +305,7 @@ sub parse_cmdline () { # {{{
+ 	}
+ 
+ 	my %dict = (
+-		'subject'		=> ($subject  or ''),
++		'subject'		=> $subject,
+ 		'message'		=> ($message or ''),
+ 		'resource'		=> ($resource or $RESOURCE),
+ 		'jserver'		=> ($jserver or ''),
+@@ -478,7 +478,7 @@ sub xmpp_send_message ($$$$$$) { # {{{
+ 	# mimeit01@xmpp.hs-esslingen.de: if $comp IS set, AND the rcpt DOESN'T contain an @, then @comp is added
+     $cnx->MessageSend('to'      => $rcpt . ( ($comp && index($rcpt, "@") == -1) ? "\@$comp" : '' ),
+ 		'type'		=> $message_type,
+-		'subject'	=> $subject,
++		('subject'	=> $subject) x !!defined($subject), # only if defined
+ 		'body'		=> $msg);
+ 
+     xmpp_check_result('MessageSend', 0, $cnx);
+@@ -689,7 +689,7 @@ Send the message to a chatroom
+ 
+ =item B<-s>, B<--subject> I<subject>
+ 
+-Set the subject for the message to I<subject> [default: '']; when sending to a chatroom, this will set the subject for the chatroom
++Set the subject for the message to I<subject>. If not defined, subject is not sent.
+ 
+ =item B<-m>, B<--message> I<message>
+ 
