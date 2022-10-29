@@ -18,8 +18,11 @@ RDEPEND="dev-perl/Net-XMPP
 	virtual/perl-Getopt-Long"
 
 PATCHES=(
-	"${FILESDIR}/${P}-0001-Enable-SRV-record-lookup-by-default.patch"
-	"${FILESDIR}/${P}-0002-Fix-for-support-virtual-domain-user-names.patch"
-	"${FILESDIR}/${P}-0003-support-dash-in-config-file.patch"
-	"${FILESDIR}/${P}-0004-Send-subject-only-if-defined.patch"
+	"${FILESDIR}/${P}-0001-Add-spaces-after-comma.patch"
+	"${FILESDIR}/${P}-0002-Enable-SRV-record-lookup-by-default.patch"
+	"${FILESDIR}/${P}-0003-Fix-for-support-virtual-domain-user-names.patch"
+	"${FILESDIR}/${P}-0004-support-dash-in-config-file.patch"
+	"${FILESDIR}/${P}-0005-support-dash-in-config-file.patch"
+	"${FILESDIR}/${P}-0006-Remove-I-something-markers-from-configuration-example.patch"
+	"${FILESDIR}/${P}-0007-Send-subject-only-if-defined.patch"
 )

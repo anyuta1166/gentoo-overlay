@@ -1,0 +1,22 @@
+From 4114203d91323e46b8c95e2c839a49ad6f6a587c Mon Sep 17 00:00:00 2001
+From: Lubomir Host <lubomir.host@gmail.com>
+Date: Wed, 29 Jul 2015 01:16:34 +0200
+Subject: [PATCH] Fix: Issue 15 -  Makefile.PL Line 16 is missing a semicolon
+
+---
+ Makefile.PL | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.PL b/Makefile.PL
+index bdcfe22..9c54cf4 100644
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -13,7 +13,7 @@ WriteMakefile (
+ 	ABSTRACT => 'Script for sending XMPP messages (Jabber client)',
+ 	PREREQ_PM => {
+ 		'Getopt::Long'		=> 2.00,
+-		'Net::XMPP'			=> 1.0
++		'Net::XMPP'			=> 1.0,
+ 		'AnyEvent::XMPP'	=> 0.55,
+ 	},
+ 	VERSION_FROM => 'sendxmpp',
