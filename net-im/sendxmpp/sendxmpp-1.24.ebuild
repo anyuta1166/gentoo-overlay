@@ -22,7 +22,7 @@ PATCHES=(
 	"${FILESDIR}/${P}-0002-Enable-SRV-record-lookup-by-default.patch"
 	"${FILESDIR}/${P}-0003-Fix-for-support-virtual-domain-user-names.patch"
 	"${FILESDIR}/${P}-0004-support-dash-in-config-file.patch"
-	"${FILESDIR}/${P}-0005-support-dash-in-config-file.patch"
+	"${FILESDIR}/${P}-0005-Makefile.PL-is-missing-a-semicolon.patch"
 	"${FILESDIR}/${P}-0006-Remove-I-something-markers-from-configuration-example.patch"
 	"${FILESDIR}/${P}-0007-Send-subject-only-if-defined.patch"
 )
