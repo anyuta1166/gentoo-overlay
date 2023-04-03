@@ -1,14 +1,17 @@
 #!/sbin/openrc-run
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 extra_commands="check save panic"
 extra_started_commands="reload"
 
+iptables_lock_wait_time=${IPTABLES_LOCK_WAIT_TIME:-"60"}
+iptables_lock_wait_interval=${IPTABLES_LOCK_WAIT_INTERVAL:-"1000"}
+
 iptables_name=${SVCNAME}
 case ${iptables_name} in
-iptables|ip6tables) ;;
-*) iptables_name="iptables" ;;
+	iptables|ip6tables) ;;
+	*) iptables_name="iptables" ;;
 esac
 
 iptables_bin="/sbin/${iptables_name}"
@@ -25,17 +28,21 @@ depend() {
 }
 
 set_table_policy() {
-	local chains table=$1 policy=$2
+	local has_errors=0 chains table=$1 policy=$2
 	case ${table} in
 		nat)    chains="PREROUTING POSTROUTING OUTPUT";;
 		mangle) chains="PREROUTING INPUT FORWARD OUTPUT POSTROUTING";;
 		filter) chains="INPUT FORWARD OUTPUT";;
 		*)      chains="";;
 	esac
+
 	local chain
 	for chain in ${chains} ; do
-		${iptables_bin} -w -t ${table} -P ${chain} ${policy}
+		${iptables_bin} --wait ${iptables_lock_wait_time} -t ${table} -P ${chain} ${policy}
+		[ $? -ne 0 ] && has_errors=1
 	done
+
+	return ${has_errors}
 }
 
 checkkernel() {
@@ -46,8 +53,9 @@ checkkernel() {
 	fi
 	return 0
 }
+
 checkconfig() {
-	if [ ! -f ${iptables_save} ] ; then
+	if [ -z "${iptables_save}" -o ! -f "${iptables_save}" ] ; then
 		eerror "Not starting ${iptables_name}.  First create some rules then run:"
 		eerror "/etc/init.d/${iptables_name} save"
 		return 1
@@ -55,39 +63,53 @@ checkconfig() {
 	return 0
 }
 
-start() {
+start_pre() {
 	checkconfig || return 1
+}
+
+start() {
 	ebegin "Loading ${iptables_name} state and starting firewall"
-	${iptables_bin}-restore ${SAVE_RESTORE_OPTIONS} < "${iptables_save}"
+	${iptables_bin}-restore --wait ${iptables_lock_wait_time} ${SAVE_RESTORE_OPTIONS} < "${iptables_save}"
 	eend $?
+}
+
+stop_pre() {
+	checkkernel || return 1
 }
 
 stop() {
 	if [ "${SAVE_ON_STOP}" = "yes" ] ; then
 		save || return 1
 	fi
-	checkkernel || return 1
+
 	ebegin "Stopping firewall"
-	local a
+	local has_errors=0 a
 	for a in $(cat ${iptables_proc}) ; do
 		set_table_policy $a ACCEPT
+		[ $? -ne 0 ] && has_errors=1
 
-		${iptables_bin} -w -F -t $a
-		${iptables_bin} -w -X -t $a
+		${iptables_bin} --wait ${iptables_lock_wait_time} -F -t $a
+		[ $? -ne 0 ] && has_errors=1
+
+		${iptables_bin} --wait ${iptables_lock_wait_time} -X -t $a
+		[ $? -ne 0 ] && has_errors=1
 	done
-	eend $?
+	eend ${has_errors}
 }
 
 reload() {
 	checkkernel || return 1
 	checkrules || return 1
 	ebegin "Flushing firewall"
-	local a
+	local has_errors=0 a
 	for a in $(cat ${iptables_proc}) ; do
-		${iptables_bin} -w -F -t $a
-		${iptables_bin} -w -X -t $a
+		${iptables_bin} --wait ${iptables_lock_wait_time} -F -t $a
+		[ $? -ne 0 ] && has_errors=1
+
+		${iptables_bin} --wait ${iptables_lock_wait_time} -X -t $a
+		[ $? -ne 0 ] && has_errors=1
 	done
-	eend $?
+	eend ${has_errors}
 
 	start
 }
@@ -112,18 +134,32 @@ save() {
 }
 
 panic() {
-	checkkernel || return 1
+	# use iptables autoload capability to load at least all required
+	# modules and filter table
+	${iptables_bin} --wait ${iptables_lock_wait_time} -S >/dev/null
+	if [ $? -ne 0 ] ; then
+		eerror "${iptables_bin} failed to load"
+		return 1
+	fi
+
 	if service_started ${iptables_name}; then
 		rc-service ${iptables_name} stop
 	fi
 
-	local a
+	local has_errors=0 a
 	ebegin "Dropping all packets"
 	for a in $(cat ${iptables_proc}) ; do
-		${iptables_bin} -w -F -t $a
-		${iptables_bin} -w -X -t $a
+		${iptables_bin} --wait ${iptables_lock_wait_time} -F -t $a
+		[ $? -ne 0 ] && has_errors=1
 
-		set_table_policy $a DROP
+		${iptables_bin} --wait ${iptables_lock_wait_time} -X -t $a
+		[ $? -ne 0 ] && has_errors=1
+
+		if [ "${a}" != "nat" ]; then
+			# The "nat" table is not intended for filtering, the use of DROP is therefore inhibited.
+			set_table_policy $a DROP
+			[ $? -ne 0 ] && has_errors=1
+		fi
 	done
-	eend $?
+	eend ${has_errors}
 }
