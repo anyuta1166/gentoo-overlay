@@ -1,4 +1,4 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -7,7 +7,7 @@ inherit systemd toolchain-funcs autotools flag-o-matic usr-ldscript
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
 HOMEPAGE="https://www.netfilter.org/projects/iptables/"
-SRC_URI="https://www.netfilter.org/projects/iptables/files/${P}.tar.bz2"
+SRC_URI="https://www.netfilter.org/projects/iptables/files/${P}.tar.xz"
 
 LICENSE="GPL-2"
 # Subslot reflects PV when libxtables and/or libip*tc was changed
@@ -34,7 +34,7 @@ BDEPEND="
 	virtual/pkgconfig
 	nftables? (
 		sys-devel/flex
-		virtual/yacc
+		app-alternatives/yacc
 	)
 "
 RDEPEND="
@@ -46,13 +46,8 @@ RDEPEND="
 IDEPEND=">=app-eselect/eselect-iptables-20220320"
 
 PATCHES=(
-	"${FILESDIR}/iptables-1.8.4-no-symlinks.patch"
-	"${FILESDIR}/iptables-1.8.2-link.patch"
-
-	"${FILESDIR}/${P}-format-security.patch"
-	"${FILESDIR}/${P}-uint-musl.patch"
-	"${FILESDIR}/${P}-musl-headers.patch"
-	"${FILESDIR}/${P}-out-of-tree-build.patch"
+	"${FILESDIR}"/${PN}-1.8.4-no-symlinks.patch
+	"${FILESDIR}"/${P}-format-security.patch
 )
 
 src_prepare() {
@@ -98,7 +93,11 @@ src_compile() {
 src_install() {
 	default
 
-	dodoc INCOMPATIBILITIES iptables/iptables.xslt
+	# Managed by eselect-iptables
+	# https://bugs.gentoo.org/881295
+	rm "${ED}/usr/bin/iptables-xml" || die
+
+	dodoc iptables/iptables.xslt
 
 	# All the iptables binaries are in /sbin, so might as well
 	# put these small files in with them
