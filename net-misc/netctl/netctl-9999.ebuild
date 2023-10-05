@@ -1,12 +1,12 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit bash-completion-r1 eutils
+inherit bash-completion-r1 optfeature
 
 if [[ ${PV} = *9999* ]]; then
-	EGIT_REPO_URI="https://git.archlinux.org/netctl.git"
+	EGIT_REPO_URI="https://gitlab.archlinux.org/archlinux/netctl.git"
 	inherit git-r3
 	DEPEND="app-text/asciidoc"
 else
@@ -15,9 +15,9 @@ else
 fi
 
 DESCRIPTION="Profile based network connection tool from Arch Linux"
-HOMEPAGE="https://wiki.archlinux.org/index.php/Netctl
-	https://www.archlinux.org/packages/core/any/netctl/
-	https://projects.archlinux.org/netctl.git/"
+HOMEPAGE="https://wiki.archlinux.org/title/Netctl
+	https://archlinux.org/packages/extra/any/netctl/
+	https://gitlab.archlinux.org/archlinux/netctl"
 
 LICENSE="GPL-3"
 SLOT="0"
@@ -46,7 +46,7 @@ src_compile() {
 }
 
 src_install() {
-	emake DESTDIR="${D%/}" SHELL=bash install
+	emake DESTDIR="${D}" SHELL=bash install
 	dodoc AUTHORS NEWS README
 	newbashcomp contrib/bash-completion netctl
 	bashcomp_alias netctl netctl-auto wifi-menu
@@ -68,7 +68,7 @@ pkg_postinst() {
 	fi
 	for v in ${REPLACING_VERSIONS}; do
 		if ver_test "${v}" -lt "1.18" || ver_test "${v}" -eq "9999"; then
-			grep -ls '^.include '  "${ROOT%/}"/etc/systemd/system/netctl@*.service | sed -r 's/.*@([^@]*)\.service/\1/' | \
+			grep -ls '^.include '  "${ROOT}"/etc/systemd/system/netctl@*.service | sed -r 's/.*@([^@]*)\.service/\1/' | \
 			while read -r unit; do
 				profile=$(systemd-escape --unescape "$unit")
 				elog "The unit for profile '$profile' uses deprecated features."
