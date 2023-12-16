@@ -1,4 +1,4 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -22,19 +22,20 @@ LICENSE="GPL-2"
 SLOT="0"
 IUSE="+rtlsdr soapysdr test"
 
-DEPEND="rtlsdr? ( net-wireless/rtl-sdr:=
+DEPEND="dev-libs/openssl:=
+	rtlsdr? ( net-wireless/rtl-sdr:=
 			virtual/libusb:1 )
-	soapysdr? ( net-wireless/soapysdr:= )
-	dev-libs/openssl:="
+	soapysdr? ( net-wireless/soapysdr:= )"
 RDEPEND="${DEPEND}"
 RESTRICT="!test? ( test )"
 
-PATCHES=(
-	"${FILESDIR}/${PN}-21.12-disable-noise-level-spam.patch"
-)
+src_prepare() {
+	sed -i 's#data data.c#data STATIC data.c#' src/CMakeLists.txt || die
+	cmake_src_prepare
+}
 
 src_configure() {
-	mycmakeargs=(
+	local mycmakeargs=(
 		-DENABLE_RTLSDR="$(usex rtlsdr)"
 		-DENABLE_SOAPYSDR="$(usex soapysdr)"
 		-DBUILD_TESTING="$(usex test)"

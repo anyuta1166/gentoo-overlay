@@ -11,7 +11,10 @@ if [[ ${PV} == "9999" ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/merbanan/rtl_433"
 else
-	SRC_URI="https://github.com/merbanan/rtl_433/archive/${PV}.tar.gz -> ${P}.tar.gz"
+	COMMIT="105342a33271bac6837d06aa86c23eec9e9ecb6a"
+	SRC_URI="https://github.com/merbanan/rtl_433/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
+	S="${WORKDIR}/${PN}-${COMMIT}"
+	#SRC_URI="https://github.com/merbanan/rtl_433/archive/${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="~amd64 ~x86"
 fi
 
@@ -21,16 +24,14 @@ IUSE="+rtlsdr soapysdr test"
 
 DEPEND="rtlsdr? ( net-wireless/rtl-sdr:=
 			virtual/libusb:1 )
-	soapysdr? ( net-wireless/soapysdr:= )
-	dev-libs/openssl:="
+	soapysdr? ( net-wireless/soapysdr:= )"
 RDEPEND="${DEPEND}"
 RESTRICT="!test? ( test )"
 
-PATCHES=(
-	"${FILESDIR}/${P}-CVE.patch"
-	"${FILESDIR}/${P}-test-visibility.patch"
-	"${FILESDIR}/${P}-disable-noise-level-spam.patch"
-)
+src_prepare() {
+	sed -i 's#data data.c#data STATIC data.c#' src/CMakeLists.txt || die
+	cmake_src_prepare
+}
 
 src_configure() {
 	local mycmakeargs=(
