@@ -3,25 +3,28 @@
 
 EAPI=8
 
-inherit systemd toolchain-funcs autotools flag-o-matic usr-ldscript
+inherit systemd toolchain-funcs autotools flag-o-matic
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
 HOMEPAGE="https://www.netfilter.org/projects/iptables/"
-SRC_URI="https://www.netfilter.org/projects/iptables/files/${P}.tar.bz2"
+SRC_URI="https://www.netfilter.org/projects/iptables/files/${P}.tar.xz"
 
 LICENSE="GPL-2"
 # Subslot reflects PV when libxtables and/or libip*tc was changed
 # the last time.
 SLOT="0/1.8.3"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
-IUSE="conntrack netlink nftables pcap static-libs"
+IUSE="conntrack netlink nftables pcap static-libs test"
+RESTRICT="!test? ( test )"
+# TODO: skip tests needing nftables if no xtables-nft-multi (bug #890628)
+REQUIRED_USE="test? ( conntrack nftables )"
 
 COMMON_DEPEND="
 	conntrack? ( >=net-libs/libnetfilter_conntrack-1.0.6 )
 	netlink? ( net-libs/libnfnetlink )
 	nftables? (
 		>=net-libs/libmnl-1.0:=
-		>=net-libs/libnftnl-1.1.6:=
+		>=net-libs/libnftnl-1.2.6:=
 	)
 	pcap? ( net-libs/libpcap )
 "
@@ -46,13 +49,7 @@ RDEPEND="
 IDEPEND=">=app-eselect/eselect-iptables-20220320"
 
 PATCHES=(
-	"${FILESDIR}/iptables-1.8.4-no-symlinks.patch"
-	"${FILESDIR}/iptables-1.8.2-link.patch"
-
-	"${FILESDIR}/${P}-format-security.patch"
-	"${FILESDIR}/${P}-uint-musl.patch"
-	"${FILESDIR}/${P}-musl-headers.patch"
-	"${FILESDIR}/${P}-out-of-tree-build.patch"
+	"${FILESDIR}"/${PN}-1.8.4-no-symlinks.patch
 )
 
 src_prepare() {
@@ -102,7 +99,7 @@ src_install() {
 	# https://bugs.gentoo.org/881295
 	rm "${ED}/usr/bin/iptables-xml" || die
 
-	dodoc INCOMPATIBILITIES iptables/iptables.xslt
+	dodoc iptables/iptables.xslt
 
 	# All the iptables binaries are in /sbin, so might as well
 	# put these small files in with them
@@ -134,9 +131,6 @@ src_install() {
 	systemd_install_serviced "${FILESDIR}"/systemd/iptables-r2.service.conf iptables.service
 	systemd_newunit "${FILESDIR}"/systemd/ip6tables-r3.service ip6tables.service
 	systemd_install_serviced "${FILESDIR}"/systemd/ip6tables-r2.service.conf ip6tables.service
-
-	# Move important libs to /lib, bug #332175
-	gen_usr_ldscript -a ip{4,6}tc xtables
 
 	find "${ED}" -type f -name "*.la" -delete || die
 }

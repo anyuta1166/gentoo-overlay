@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit systemd toolchain-funcs autotools flag-o-matic usr-ldscript
+inherit systemd toolchain-funcs autotools flag-o-matic
 
 DESCRIPTION="Linux kernel (2.4+) firewall, NAT and packet mangling tools"
 HOMEPAGE="https://www.netfilter.org/projects/iptables/"
@@ -14,7 +14,10 @@ LICENSE="GPL-2"
 # the last time.
 SLOT="0/1.8.3"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
-IUSE="conntrack netlink nftables pcap static-libs"
+IUSE="conntrack netlink nftables pcap static-libs test"
+RESTRICT="!test? ( test )"
+# TODO: skip tests needing nftables if no xtables-nft-multi (bug #890628)
+REQUIRED_USE="test? ( conntrack nftables )"
 
 COMMON_DEPEND="
 	conntrack? ( >=net-libs/libnetfilter_conntrack-1.0.6 )
@@ -130,9 +133,6 @@ src_install() {
 	systemd_install_serviced "${FILESDIR}"/systemd/iptables-r2.service.conf iptables.service
 	systemd_newunit "${FILESDIR}"/systemd/ip6tables-r3.service ip6tables.service
 	systemd_install_serviced "${FILESDIR}"/systemd/ip6tables-r2.service.conf ip6tables.service
-
-	# Move important libs to /lib, bug #332175
-	gen_usr_ldscript -a ip{4,6}tc xtables
 
 	find "${ED}" -type f -name "*.la" -delete || die
 }
