@@ -145,8 +145,8 @@ BDEPEND="virtual/pkgconfig"
 PHP_MV="$(ver_cut 1)"
 
 PATCHES=(
-       "${FILESDIR}/php-8.3.8-fpm-php_values-from-env.patch"
-       "${FILESDIR}/php-8.3.8-fpm-restore-ini-from-env.patch"
+	"${FILESDIR}/php-8.3.8-fpm-php_values-from-env.patch"
+	"${FILESDIR}/php-8.3.8-fpm-restore-ini-from-env.patch"
 )
 
 # ARM/Windows functions (bug 923335)

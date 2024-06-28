@@ -1,0 +1,35 @@
+--- a/sapi/fpm/fpm/fpm_main.c	2023-02-10 23:25:55.963087113 +0100
++++ b/sapi/fpm/fpm/fpm_main.c	2023-02-10 23:27:07.873568614 +0100
+@@ -707,6 +707,16 @@
+ 		}
+ 	}
+ 
++	/* INI stuff */
++	char *ini = FCGI_GETENV(request, "PHP_VALUE");
++	if (ini) {
++		int mode = ZEND_INI_PERDIR;
++		char *tmp;
++		spprintf(&tmp, 0, "%s\n", ini);
++		zend_parse_ini_string(tmp, 1, ZEND_INI_SCANNER_NORMAL, (zend_ini_parser_cb_t)fastcgi_ini_parser, &mode);
++		efree(tmp);
++	}
++
+ 	if (php_ini_has_per_dir_config() ||
+ 		(PG(user_ini_filename) && *PG(user_ini_filename))
+ 	) {
+@@ -1314,6 +1324,7 @@
+ 		php_handle_auth_data(auth);
+ 	}
+ 
++#if 0
+ 	/* INI stuff */
+ 	ini = FCGI_GETENV(request, "PHP_VALUE");
+ 	if (ini) {
+@@ -1332,6 +1343,7 @@
+ 		zend_parse_ini_string(tmp, 1, ZEND_INI_SCANNER_NORMAL, (zend_ini_parser_cb_t)fastcgi_ini_parser, &mode);
+ 		efree(tmp);
+ 	}
++#endif
+ }
+ /* }}} */
+ 
