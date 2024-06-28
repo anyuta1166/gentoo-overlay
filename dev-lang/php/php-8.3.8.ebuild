@@ -1,13 +1,12 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="8"
+EAPI=8
 
 WANT_AUTOMAKE="none"
 
-inherit flag-o-matic systemd autotools
+inherit flag-o-matic multilib systemd
 
-MY_PV=${PV/_rc/RC}
 DESCRIPTION="The PHP language runtime engine"
 HOMEPAGE="https://www.php.net/"
 SRC_URI="https://www.php.net/distributions/${P}.tar.xz"
@@ -21,9 +20,7 @@ LICENSE="PHP-3.01
 	unicode? ( BSD-2 LGPL-2.1 )"
 
 SLOT="$(ver_cut 1-2)"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos"
-
-S="${WORKDIR}/${PN}-${MY_PV}"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos"
 
 # We can build the following SAPIs in the given order
 SAPIS="embed cli cgi fpm apache2 phpdbg"
@@ -33,22 +30,22 @@ IUSE="${IUSE}
 	${SAPIS/cli/+cli}
 	threads"
 
-IUSE="${IUSE} acl apparmor argon2 bcmath berkdb bzip2 calendar cdb cjk
-	coverage +ctype curl debug
+IUSE="${IUSE} acl apparmor argon2 avif bcmath berkdb bzip2 calendar
+	capstone cdb cjk +ctype curl debug
 	enchant exif ffi +fileinfo +filter firebird
 	+flatfile ftp gd gdbm gmp +iconv imap inifile
 	intl iodbc ipv6 +jit kerberos ldap ldap-sasl libedit lmdb
 	mhash mssql mysql mysqli nls
-	oci8-instant-client odbc +opcache pcntl pdo +phar +posix postgres qdbm
+	odbc +opcache pcntl pdo +phar +posix postgres qdbm
 	readline selinux +session session-mm sharedmem
 	+simplexml snmp soap sockets sodium spell sqlite ssl
-	sysvipc systemd test tidy +tokenizer tokyocabinet truetype unicode webp
-	+xml xmlreader xmlwriter xpm xslt zip zlib"
+	sysvipc systemd test tidy +tokenizer tokyocabinet truetype unicode
+	valgrind webp +xml xmlreader xmlwriter xpm xslt zip zlib"
 
 # Without USE=readline or libedit, the interactive "php -a" CLI will hang.
-# The Oracle instant client provides its own incompatible ldap library.
 REQUIRED_USE="
 	|| ( cli cgi fpm apache2 embed phpdbg )
+	avif? ( gd zlib )
 	cli? ( ^^ ( readline libedit ) )
 	!cli? ( ?? ( readline libedit ) )
 	truetype? ( gd zlib )
@@ -63,12 +60,12 @@ REQUIRED_USE="
 	xmlwriter? ( xml )
 	xslt? ( xml )
 	ldap-sasl? ( ldap )
-	oci8-instant-client? ( !ldap )
 	qdbm? ( !gdbm )
 	session-mm? ( session !threads )
 	mysql? ( || ( mysqli pdo ) )
 	firebird? ( pdo )
 	mssql? ( pdo )
+	test? ( cli )
 "
 
 RESTRICT="!test? ( test )"
@@ -77,56 +74,58 @@ RESTRICT="!test? ( test )"
 # the ./configure script. Other versions *work*, but we need to stick to
 # the ones that can be detected to avoid a repeat of bug #564824.
 COMMON_DEPEND="
-	>=app-eselect/eselect-php-0.9.7[apache2?,fpm?]
-	>=dev-libs/libpcre2-10.30[jit?,unicode]
-	fpm? ( acl? ( sys-apps/acl ) apparmor? ( sys-libs/libapparmor ) )
+	app-eselect/eselect-php[apache2?,fpm?]
+	dev-libs/libpcre2[jit?,unicode]
+	virtual/libcrypt:=
+	fpm? ( acl? ( sys-apps/acl ) apparmor? ( sys-libs/libapparmor ) selinux? ( sys-libs/libselinux ) )
 	apache2? ( www-servers/apache[apache2_modules_unixd(+),threads=] )
 	argon2? ( app-crypt/argon2:= )
+	avif? ( media-libs/libavif:= )
 	berkdb? ( || (	sys-libs/db:5.3 sys-libs/db:4.8 ) )
 	bzip2? ( app-arch/bzip2:0= )
+	capstone? ( dev-libs/capstone )
 	cdb? ( || ( dev-db/cdb dev-db/tinycdb ) )
-	coverage? ( dev-util/lcov )
-	curl? ( >=net-misc/curl-7.29.0 )
+	curl? ( net-misc/curl )
 	enchant? ( app-text/enchant:2 )
-	ffi? ( >=dev-libs/libffi-3.0.11:= )
+	ffi? ( dev-libs/libffi:= )
 	firebird? ( dev-db/firebird )
-	gd? ( >=virtual/jpeg-0-r3:0 media-libs/libpng:0= )
-	gdbm? ( >=sys-libs/gdbm-1.8.0:0= )
+	gd? ( media-libs/libjpeg-turbo:0= media-libs/libpng:0= )
+	gdbm? ( sys-libs/gdbm:0= )
 	gmp? ( dev-libs/gmp:0= )
 	iconv? ( virtual/libiconv )
-	imap? ( >=virtual/imap-c-client-2[kerberos=,ssl=] )
+	imap? ( net-libs/c-client[kerberos=,ssl=] )
 	intl? ( dev-libs/icu:= )
 	kerberos? ( virtual/krb5 )
-	ldap? ( >=net-nds/openldap-1.2.11:= )
+	ldap? ( net-nds/openldap:= )
 	ldap-sasl? ( dev-libs/cyrus-sasl )
 	libedit? ( dev-libs/libedit )
 	lmdb? ( dev-db/lmdb:= )
 	mssql? ( dev-db/freetds[mssql] )
 	nls? ( sys-devel/gettext )
-	oci8-instant-client? ( dev-db/oracle-instantclient[sdk] )
-	odbc? ( iodbc? ( dev-db/libiodbc ) !iodbc? ( >=dev-db/unixODBC-1.8.13 ) )
-	postgres? ( >=dev-db/postgresql-9.1:* )
+	odbc? ( iodbc? ( dev-db/libiodbc ) !iodbc? ( dev-db/unixODBC ) )
+	postgres? ( dev-db/postgresql:* )
 	qdbm? ( dev-db/qdbm )
 	readline? ( sys-libs/readline:0= )
 	session-mm? ( dev-libs/mm )
-	snmp? ( >=net-analyzer/net-snmp-5.2 )
-	sodium? ( dev-libs/libsodium:=[-minimal] )
-	spell? ( >=app-text/aspell-0.50 )
-	sqlite? ( >=dev-db/sqlite-3.7.6.3 )
-	ssl? ( >=dev-libs/openssl-1.0.2:0= )
+	snmp? ( net-analyzer/net-snmp )
+	sodium? ( dev-libs/libsodium:=[-minimal(-)] )
+	spell? ( app-text/aspell )
+	sqlite? ( dev-db/sqlite )
+	ssl? ( dev-libs/openssl:0= )
 	tidy? ( app-text/htmltidy )
 	tokyocabinet? ( dev-db/tokyocabinet )
-	truetype? ( =media-libs/freetype-2* )
+	truetype? ( media-libs/freetype )
 	unicode? ( dev-libs/oniguruma:= )
+	valgrind? ( dev-debug/valgrind )
 	webp? ( media-libs/libwebp:0= )
-	xml? ( >=dev-libs/libxml2-2.9.0 )
+	xml? ( >=dev-libs/libxml2-2.12.5 )
 	xpm? ( x11-libs/libXpm )
 	xslt? ( dev-libs/libxslt )
-	zip? ( >=dev-libs/libzip-1.2.0:= )
-	zlib? ( >=sys-libs/zlib-1.2.0.4:0= )
+	zip? ( dev-libs/libzip:= )
+	zlib? ( sys-libs/zlib:0= )
 "
 
-IDEPEND=">=app-eselect/eselect-php-0.9.7[apache2?,fpm?]"
+IDEPEND="app-eselect/eselect-php[apache2?,fpm?]"
 
 RDEPEND="${COMMON_DEPEND}
 	virtual/mta
@@ -139,16 +138,23 @@ RDEPEND="${COMMON_DEPEND}
 # have an incompatible version installed. See bug 593278.
 DEPEND="${COMMON_DEPEND}
 	app-arch/xz-utils
-	>=sys-devel/bison-3.0.1"
+	sys-devel/bison"
 
 BDEPEND="virtual/pkgconfig"
 
 PHP_MV="$(ver_cut 1)"
 
-PATCHES=(
-	"${FILESDIR}/php-iodbc-header-location.patch"
-	"${FILESDIR}/php-8.1.5-fpm-php_values-from-env.patch"
-	"${FILESDIR}/php-8.1.5-fpm-restore-ini-from-env.patch"
+# ARM/Windows functions (bug 923335)
+QA_CONFIG_IMPL_DECL_SKIP=(
+	__crc32d
+	_controlfp
+	_controlfp_s
+)
+
+# Functions from alternate iconv implementations (bug 925268)
+QA_CONFIG_IMPL_DECL_SKIP+=(
+	iconv_ccs_init
+	cstoccsid
 )
 
 php_install_ini() {
@@ -161,15 +167,14 @@ php_install_ini() {
 	local phpinisrc="php.ini-production-${phpsapi}"
 	cp php.ini-production "${phpinisrc}" || die
 
-	# default to /tmp for save_path, bug #282768
-	sed -e 's|^;session.save_path .*$|session.save_path = "'"${EPREFIX}"'/tmp"|g' -i "${phpinisrc}" || die
-
-	# Set the extension dir
-	sed -e "s|^extension_dir .*$|extension_dir = ${extension_dir}|g" \
-		-i "${phpinisrc}" || die
-
-	# Set the include path to point to where we want to find PEAR packages
-	sed -e 's|^;include_path = ".:/php/includes".*|include_path = ".:'"${EPREFIX}"'/usr/share/php'${PHP_MV}':'"${EPREFIX}"'/usr/share/php"|' -i "${phpinisrc}" || die
+	# Set the include path to point to where we want to find PEAR
+	# packages
+	local sed_src='^;include_path = ".:/php.*'
+	local include_path="."
+	include_path+=":${EPREFIX}/usr/share/php${PHP_MV}"
+	include_path+=":${EPREFIX}/usr/share/php"
+	local sed_dst="include_path = \"${include_path}\""
+	sed -e "s|${sed_src}|${sed_dst}|" -i "${phpinisrc}" || die
 
 	insinto "${PHP_INI_DIR#${EPREFIX}}"
 	newins "${phpinisrc}" php.ini
@@ -182,7 +187,7 @@ php_install_ini() {
 
 	if use opcache; then
 		elog "Adding opcache to $PHP_EXT_INI_DIR"
-		echo "zend_extension=${PHP_DESTDIR}/$(get_libdir)/opcache.so" >> \
+		echo "zend_extension = opcache.so" >> \
 			 "${D}/${PHP_EXT_INI_DIR}"/opcache.ini
 		dosym "../ext/opcache.ini" \
 			  "${PHP_EXT_INI_DIR_ACTIVE#${EPREFIX}}/opcache.ini"
@@ -219,32 +224,57 @@ src_prepare() {
 		sapi/fpm/php-fpm.conf.in \
 		|| die 'failed to move the include directory in php-fpm.conf'
 
-	# Emulate buildconf to support cross-compilation
-	rm -fr aclocal.m4 autom4te.cache config.cache \
-		configure main/php_config.h.in || die
-	eautoconf --force
-	eautoheader
+	# fails in a network sandbox,
+	#
+	#   https://github.com/php/php-src/issues/11662
+	#
+	rm ext/sockets/tests/bug63000.phpt || die
 
-	# Remove false positive test failures
-	# stream_isatty fails due to portage redirects
-	# curl tests here fail for network sandbox issues
-	# session tests here fail because we set the session directory to $T
-	rm tests/output/stream_isatty_err.phpt \
-	   tests/output/stream_isatty_out-err.phpt \
-	   tests/output/stream_isatty_out.phpt \
-	   ext/curl/tests/bug76675.phpt \
-	   ext/curl/tests/bug77535.phpt \
-	   ext/curl/tests/curl_error_basic.phpt \
-	   ext/session/tests/bug74514.phpt \
-	   ext/session/tests/bug74936.phpt || die
+	# Tests ignoring the "-n" flag we pass to run-tests.php,
+	#
+	#   https://github.com/php/php-src/pull/11669
+	#
+	rm ext/standard/tests/file/bug60120.phpt \
+	   ext/standard/tests/general_functions/proc_open_null.phpt \
+	   ext/standard/tests/general_functions/proc_open_redirect.phpt \
+	   ext/standard/tests/general_functions/proc_open_sockets1.phpt \
+	   ext/standard/tests/general_functions/proc_open_sockets2.phpt \
+	   ext/standard/tests/general_functions/proc_open_sockets3.phpt \
+	   ext/standard/tests/ini_info/php_ini_loaded_file.phpt \
+	   sapi/cli/tests/016.phpt \
+	   sapi/cli/tests/023.phpt \
+	   sapi/cli/tests/bug65275.phpt \
+	   sapi/cli/tests/bug74600.phpt \
+	   sapi/cli/tests/bug78323.phpt \
+	   || die
 
+	# This is a memory usage test with hard-coded limits. Whenever the
+	# limits are surpassed... they get increased... but in the meantime,
+	# the tests fail. This is not really a test that end users should
+	# be running pre-install, in my opinion. Bug 927461.
+	rm ext/fileinfo/tests/bug78987.phpt || die
+
+	# The expected warnings aren't triggered in this test because we
+	# define session.save_path on the CLI:
+	#
+	#   https://github.com/php/php-src/issues/14368
+	#
+	rm ext/session/tests/gh13856.phpt || die
 }
 
 src_configure() {
 	addpredict /usr/share/snmp/mibs/.index #nowarn
 	addpredict /var/lib/net-snmp/mib_indexes #nowarn
 
+	# https://bugs.gentoo.org/866683, https://bugs.gentoo.org/913527
+	filter-lto
+
 	PHP_DESTDIR="${EPREFIX}/usr/$(get_libdir)/php${SLOT}"
+
+	# Don't allow ./configure to detect and use an existing version
+	# of PHP; this can lead to all sorts of weird unpredictability
+	# as in bug 900210.
+	export ac_cv_prog_PHP=""
 
 	# The php-fpm config file wants localstatedir to be ${EPREFIX}/var
 	# and not the Gentoo default ${EPREFIX}/var/lib. See bug 572002.
@@ -256,16 +286,23 @@ src_configure() {
 		--with-libdir="$(get_libdir)"
 		--localstatedir="${EPREFIX}/var"
 		--without-pear
+		--without-valgrind
+		--with-external-libcrypt
 		$(use_enable threads zts)
 	)
+
+	# The slotted man/info pages will be missed by the default list of
+	# docompress paths.
+	docompress "${PHP_DESTDIR}/man" "${PHP_DESTDIR}/info"
 
 	our_conf+=(
 		$(use_with apparmor fpm-apparmor)
 		$(use_with argon2 password-argon2 "${EPREFIX}/usr")
+		$(use_with avif)
 		$(use_enable bcmath)
 		$(use_with bzip2 bz2 "${EPREFIX}/usr")
 		$(use_enable calendar)
-		$(use_enable coverage gcov)
+		$(use_with capstone)
 		$(use_enable ctype)
 		$(use_with curl)
 		$(use_enable xml dom)
@@ -292,6 +329,7 @@ src_configure() {
 		$(use_enable opcache)
 		$(use_with postgres pgsql "${EPREFIX}/usr")
 		$(use_enable posix)
+		$(use_with selinux fpm-selinux)
 		$(use_with spell pspell "${EPREFIX}/usr")
 		$(use_enable simplexml)
 		$(use_enable sharedmem shmop)
@@ -312,6 +350,7 @@ src_configure() {
 		$(use_with zip)
 		$(use_with zlib zlib "${EPREFIX}/usr")
 		$(use_enable debug)
+		$(use_with valgrind)
 	)
 
 	# DBA support
@@ -360,10 +399,7 @@ src_configure() {
 	fi
 
 	# MySQL support
-	local mysqllib="mysqlnd"
-	local mysqlilib="mysqlnd"
-
-	our_conf+=( $(use_with mysqli mysqli "${mysqlilib}") )
+	our_conf+=( $(use_with mysqli) )
 
 	local mysqlsock="${EPREFIX}/var/run/mysqld/mysqld.sock"
 	if use mysql || use mysqli ; then
@@ -372,10 +408,22 @@ src_configure() {
 
 	# ODBC support
 	if use odbc && use iodbc ; then
+		# Obtain the correct -l and -I flags for the actual build from
+		# pkg-config. We use the "generic" library type to avoid the
+		# (wrong) hard-coded include dir for iodbc.
+		#
+		# We set the pdo_odbc_def_incdir variable because the
+		# ./configure script checks for the headers using "test -f" and
+		# ignores your CFLAGS... and pdo_odbc_def_libdir prevents the
+		# build system from appending a nonsense -L flag.
+		local iodbc_ldflags=$(pkg-config --libs libiodbc)
+		local iodbc_cflags=$(pkg-config --cflags libiodbc)
 		our_conf+=(
+			pdo_odbc_def_libdir="${EPREFIX}/usr/$(get_libdir)"
+			pdo_odbc_def_incdir="${EPREFIX}/usr/include/iodbc"
 			--without-unixODBC
 			--with-iodbc
-			$(use_with pdo pdo-odbc "iODBC,${EPREFIX}/usr")
+			$(use_with pdo pdo-odbc "generic,,iodbc,${iodbc_ldlags},${iodbc_cflags}")
 		)
 	elif use odbc ; then
 		our_conf+=(
@@ -391,18 +439,14 @@ src_configure() {
 		)
 	fi
 
-	# Oracle support
-	our_conf+=( $(use_with oci8-instant-client oci8) )
-
 	# PDO support
 	if use pdo ; then
 		our_conf+=(
 			$(use_with mssql pdo-dblib "${EPREFIX}/usr")
-			$(use_with mysql pdo-mysql "${mysqllib}")
+			$(use_with mysql pdo-mysql "mysqlnd")
 			$(use_with postgres pdo-pgsql)
 			$(use_with sqlite pdo-sqlite)
 			$(use_with firebird pdo-firebird "${EPREFIX}/usr")
-			$(use_with oci8-instant-client pdo-oci)
 		)
 	fi
 
@@ -443,9 +487,20 @@ src_configure() {
 	# Support the Apache2 extras, they must be set globally for all
 	# SAPIs to work correctly, especially for external PHP extensions
 
+	# Create separate build trees for each enabled SAPI. The upstream
+	# build system doesn't do this, but we have to do it to use a
+	# different php.ini for each SAPI (see --with-config-file-path and
+	# --with-config-file-scan-dir below). The path winds up define'd
+	# in main/build-defs.h which is included in main/php.h which is
+	# included by basically everything; so, avoiding a rebuild after
+	# changing it is not an easy job.
+	#
+	# The upstream build system also does not support building the
+	# apache2 and embed SAPIs at the same time, presumably because they
+	# both produce a libphp.so.
 	local one_sapi
 	local sapi
-	mkdir -p "${WORKDIR}/sapis-build" || die
+	mkdir "${WORKDIR}/sapis-build" || die
 	for one_sapi in $SAPIS ; do
 		use "${one_sapi}" || continue
 		php_set_ini_dir "${one_sapi}"
@@ -455,7 +510,6 @@ src_configure() {
 		# based on the autotools-utils eclass.
 		BUILD_DIR="${WORKDIR}/sapis-build/${one_sapi}"
 		cp -a "${S}" "${BUILD_DIR}" || die
-		cd "${BUILD_DIR}" || die
 
 		local sapi_conf=(
 			--with-config-file-path="${PHP_INI_DIR}"
@@ -494,6 +548,7 @@ src_configure() {
 		myeconfargs+=( "${sapi_conf[@]}" )
 
 		pushd "${BUILD_DIR}" > /dev/null || die
+		einfo "Running econf in ${BUILD_DIR}"
 		econf "${myeconfargs[@]}"
 		popd > /dev/null || die
 	done
@@ -506,11 +561,7 @@ src_compile() {
 
 	local sapi
 	for sapi in ${SAPIS} ; do
-		if use "${sapi}"; then
-			cd "${WORKDIR}/sapis-build/$sapi" || \
-				die "Failed to change dir to ${WORKDIR}/sapis-build/$1"
-			emake
-		fi
+		use "${sapi}" && emake -C "${WORKDIR}/sapis-build/${sapi}"
 	done
 }
 
@@ -527,20 +578,15 @@ src_install() {
 		fi
 	done
 
-	# Makefile forgets to create this before trying to write to it...
-	dodir "${PHP_DESTDIR#${EPREFIX}}/bin"
-
-	# Install php environment (without any sapis)
+	# Install SAPI-independent targets
 	cd "${WORKDIR}/sapis-build/$first_sapi" || die
 	emake INSTALL_ROOT="${D}" \
 		install-build install-headers install-programs
-
-	local extension_dir="$("${ED}/${PHP_DESTDIR#${EPREFIX}}/bin/php-config" --extension-dir)"
+	use opcache && emake INSTALL_ROOT="${D}" install-modules
 
 	# Create the directory where we'll put version-specific php scripts
 	keepdir "/usr/share/php${PHP_MV}"
 
-	local file=""
 	local sapi_list=""
 
 	for sapi in ${SAPIS}; do
@@ -606,12 +652,6 @@ src_install() {
 		fi
 	done
 
-	# Installing opcache module
-	if use opcache ; then
-		into "${PHP_DESTDIR#${EPREFIX}}"
-		dolib.so "modules/opcache$(get_libname)"
-	fi
-
 	# Install env.d files
 	newenvd "${FILESDIR}/20php5-envd" "20php${SLOT}"
 	sed -e "s|/lib/|/$(get_libdir)/|g" -i "${ED}/etc/env.d/20php${SLOT}" || die
@@ -633,14 +673,13 @@ src_install() {
 }
 
 src_test() {
-	echo ">>> Test phase [test]: ${CATEGORY}/${PF}"
-	PHP_BIN="${WORKDIR}/sapis-build/cli/sapi/cli/php"
-	if [[ ! -x "${PHP_BIN}" ]] ; then
-		ewarn "Test phase requires USE=cli, skipping"
-		return
-	else
-		export TEST_PHP_EXECUTABLE="${PHP_BIN}"
-	fi
+	export TEST_PHP_EXECUTABLE="${WORKDIR}/sapis-build/cli/sapi/cli/php"
+
+	# Sometimes when the sub-php launches a sub-sub-php, it uses these.
+	# Without an "-n" in all instances, the *live* php.ini can be loaded,
+	# pulling in *live* zend extensions. And those can be incompatible
+	# with the thing we just built.
+	export TEST_PHP_EXTRA_ARGS="-n"
 
 	if [[ -x "${WORKDIR}/sapis-build/cgi/sapi/cgi/php-cgi" ]] ; then
 		export TEST_PHP_CGI_EXECUTABLE="${WORKDIR}/sapis-build/cgi/sapi/cgi/php-cgi"
@@ -650,40 +689,16 @@ src_test() {
 		export TEST_PHPDBG_EXECUTABLE="${WORKDIR}/sapis-build/phpdbg/sapi/phpdbg/phpdbg"
 	fi
 
-	SKIP_ONLINE_TESTS=1 REPORT_EXIT_STATUS=1 "${TEST_PHP_EXECUTABLE}" -n  -d \
-					  "session.save_path=${T}" \
-					  "${WORKDIR}/sapis-build/cli/run-tests.php" -n -q -d \
-					  "session.save_path=${T}"
-
-	for name in ${EXPECTED_TEST_FAILURES}; do
-		mv "${name}.out" "${name}.out.orig" 2>/dev/null || die
-	done
-
-	local failed="$(find -name '*.out')"
-	if [[ ${failed} != "" ]] ; then
-		ewarn "The following test cases failed unexpectedly:"
-		for name in ${failed}; do
-			ewarn "  ${name/.out/}"
-		done
-	else
-		einfo "No unexpected test failures, all fine"
-	fi
-
-	if [[ ${PHP_SHOW_UNEXPECTED_TEST_PASS} == "1" ]] ; then
-		local passed=""
-		for name in ${EXPECTED_TEST_FAILURES}; do
-			[[ -f "${name}.diff" ]] && continue
-			passed="${passed} ${name}"
-		done
-		if [[ ${passed} != "" ]] ; then
-			einfo "The following test cases passed unexpectedly:"
-			for name in ${passed}; do
-				ewarn "  ${passed}"
-			done
-		else
-			einfo "None of the known-to-fail tests passed, all fine"
-		fi
-	fi
+	# The IO capture tests need to be disabled because they fail when
+	# std{in,out,err} are redirected (as they are within portage).
+	#
+	# One -n applies to the top-level "php", while the other applies
+	# to any sub-php that get invoked by the test runner.
+	SKIP_IO_CAPTURE_TESTS=1 SKIP_PERF_SENSITIVE=1 REPORT_EXIT_STATUS=1 \
+		"${TEST_PHP_EXECUTABLE}" -n \
+		"${WORKDIR}/sapis-build/cli/run-tests.php" --offline -n -q \
+		-d "session.save_path=${T}" \
+		|| die "tests failed"
 }
 
 pkg_postinst() {

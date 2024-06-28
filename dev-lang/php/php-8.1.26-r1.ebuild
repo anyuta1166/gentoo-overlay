@@ -1,13 +1,12 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI=8
 
 WANT_AUTOMAKE="none"
 
-inherit flag-o-matic systemd autotools
+inherit flag-o-matic multilib systemd autotools
 
-MY_PV=${PV/_rc/rc}
 DESCRIPTION="The PHP language runtime engine"
 HOMEPAGE="https://www.php.net/"
 SRC_URI="https://www.php.net/distributions/${P}.tar.xz"
@@ -21,9 +20,7 @@ LICENSE="PHP-3.01
 	unicode? ( BSD-2 LGPL-2.1 )"
 
 SLOT="$(ver_cut 1-2)"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos"
-
-S="${WORKDIR}/${PN}-${MY_PV}"
+KEYWORDS="~alpha amd64 arm arm64 ~hppa ~ia64 ~loong ~mips ppc ppc64 ~riscv ~s390 sparc x86 ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos"
 
 # We can build the following SAPIs in the given order
 SAPIS="embed cli cgi fpm apache2 phpdbg"
@@ -33,8 +30,8 @@ IUSE="${IUSE}
 	${SAPIS/cli/+cli}
 	threads"
 
-IUSE="${IUSE} acl apparmor argon2 bcmath berkdb bzip2 calendar cdb cjk
-	coverage +ctype curl debug
+IUSE="${IUSE} acl apparmor argon2 avif bcmath berkdb bzip2 calendar
+	cdb cjk coverage +ctype curl debug
 	enchant exif ffi +fileinfo +filter firebird
 	+flatfile ftp gd gdbm gmp +iconv imap inifile
 	intl iodbc ipv6 +jit kerberos ldap ldap-sasl libedit lmdb
@@ -49,6 +46,7 @@ IUSE="${IUSE} acl apparmor argon2 bcmath berkdb bzip2 calendar cdb cjk
 # The Oracle instant client provides its own incompatible ldap library.
 REQUIRED_USE="
 	|| ( cli cgi fpm apache2 embed phpdbg )
+	avif? ( gd zlib )
 	cli? ( ^^ ( readline libedit ) )
 	!cli? ( ?? ( readline libedit ) )
 	truetype? ( gd zlib )
@@ -79,9 +77,11 @@ RESTRICT="!test? ( test )"
 COMMON_DEPEND="
 	>=app-eselect/eselect-php-0.9.7[apache2?,fpm?]
 	>=dev-libs/libpcre2-10.30[jit?,unicode]
+	virtual/libcrypt:=
 	fpm? ( acl? ( sys-apps/acl ) apparmor? ( sys-libs/libapparmor ) )
 	apache2? ( www-servers/apache[apache2_modules_unixd(+),threads=] )
 	argon2? ( app-crypt/argon2:= )
+	avif? ( media-libs/libavif:= )
 	berkdb? ( || (	sys-libs/db:5.3 sys-libs/db:4.8 ) )
 	bzip2? ( app-arch/bzip2:0= )
 	cdb? ( || ( dev-db/cdb dev-db/tinycdb ) )
@@ -90,11 +90,11 @@ COMMON_DEPEND="
 	enchant? ( app-text/enchant:2 )
 	ffi? ( >=dev-libs/libffi-3.0.11:= )
 	firebird? ( dev-db/firebird )
-	gd? ( >=virtual/jpeg-0-r3:0 media-libs/libpng:0= )
+	gd? ( media-libs/libjpeg-turbo:0= media-libs/libpng:0= )
 	gdbm? ( >=sys-libs/gdbm-1.8.0:0= )
 	gmp? ( dev-libs/gmp:0= )
 	iconv? ( virtual/libiconv )
-	imap? ( >=virtual/imap-c-client-2[kerberos=,ssl=] )
+	imap? ( net-libs/c-client[kerberos=,ssl=] )
 	intl? ( dev-libs/icu:= )
 	kerberos? ( virtual/krb5 )
 	ldap? ( >=net-nds/openldap-1.2.11:= )
@@ -110,10 +110,10 @@ COMMON_DEPEND="
 	readline? ( sys-libs/readline:0= )
 	session-mm? ( dev-libs/mm )
 	snmp? ( >=net-analyzer/net-snmp-5.2 )
-	sodium? ( dev-libs/libsodium:=[-minimal] )
+	sodium? ( dev-libs/libsodium:=[-minimal(-)] )
 	spell? ( >=app-text/aspell-0.50 )
 	sqlite? ( >=dev-db/sqlite-3.7.6.3 )
-	ssl? ( >=dev-libs/openssl-1.0.1:0= )
+	ssl? ( >=dev-libs/openssl-1.0.2:0= )
 	tidy? ( app-text/htmltidy )
 	tokyocabinet? ( dev-db/tokyocabinet )
 	truetype? ( =media-libs/freetype-2* )
@@ -125,6 +125,8 @@ COMMON_DEPEND="
 	zip? ( >=dev-libs/libzip-1.2.0:= )
 	zlib? ( >=sys-libs/zlib-1.2.0.4:0= )
 "
+
+IDEPEND=">=app-eselect/eselect-php-0.9.7[apache2?,fpm?]"
 
 RDEPEND="${COMMON_DEPEND}
 	virtual/mta
@@ -145,9 +147,7 @@ PHP_MV="$(ver_cut 1)"
 
 PATCHES=(
 	"${FILESDIR}/php-iodbc-header-location.patch"
-	"${FILESDIR}/php80-firebird-warnings.patch"
-	"${FILESDIR}/php-8.0.17-fpm-php_values-from-env.patch"
-	"${FILESDIR}/php-8.0.17-fpm-restore-ini-from-env.patch"
+	"${FILESDIR}/php-capstone-optional.patch"
 )
 
 php_install_ini() {
@@ -245,6 +245,9 @@ src_configure() {
 
 	PHP_DESTDIR="${EPREFIX}/usr/$(get_libdir)/php${SLOT}"
 
+	# https://bugs.gentoo.org/866683, https://bugs.gentoo.org/913527
+	filter-lto
+
 	# The php-fpm config file wants localstatedir to be ${EPREFIX}/var
 	# and not the Gentoo default ${EPREFIX}/var/lib. See bug 572002.
 	local our_conf=(
@@ -255,12 +258,14 @@ src_configure() {
 		--with-libdir="$(get_libdir)"
 		--localstatedir="${EPREFIX}/var"
 		--without-pear
+		--without-valgrind
 		$(use_enable threads zts)
 	)
 
 	our_conf+=(
 		$(use_with apparmor fpm-apparmor)
 		$(use_with argon2 password-argon2 "${EPREFIX}/usr")
+		$(use_with avif)
 		$(use_enable bcmath)
 		$(use_with bzip2 bz2 "${EPREFIX}/usr")
 		$(use_enable calendar)
@@ -359,10 +364,7 @@ src_configure() {
 	fi
 
 	# MySQL support
-	local mysqllib="mysqlnd"
-	local mysqlilib="mysqlnd"
-
-	our_conf+=( $(use_with mysqli mysqli "${mysqlilib}") )
+	our_conf+=( $(use_with mysqli mysqli "mysqlnd") )
 
 	local mysqlsock="${EPREFIX}/var/run/mysqld/mysqld.sock"
 	if use mysql || use mysqli ; then
@@ -397,7 +399,7 @@ src_configure() {
 	if use pdo ; then
 		our_conf+=(
 			$(use_with mssql pdo-dblib "${EPREFIX}/usr")
-			$(use_with mysql pdo-mysql "${mysqllib}")
+			$(use_with mysql pdo-mysql "mysqlnd")
 			$(use_with postgres pdo-pgsql)
 			$(use_with sqlite pdo-sqlite)
 			$(use_with firebird pdo-firebird "${EPREFIX}/usr")
@@ -649,7 +651,7 @@ src_test() {
 		export TEST_PHPDBG_EXECUTABLE="${WORKDIR}/sapis-build/phpdbg/sapi/phpdbg/phpdbg"
 	fi
 
-	REPORT_EXIT_STATUS=1 "${TEST_PHP_EXECUTABLE}" -n  -d \
+	SKIP_ONLINE_TESTS=1 REPORT_EXIT_STATUS=1 "${TEST_PHP_EXECUTABLE}" -n  -d \
 					  "session.save_path=${T}" \
 					  "${WORKDIR}/sapis-build/cli/run-tests.php" -n -q -d \
 					  "session.save_path=${T}"
