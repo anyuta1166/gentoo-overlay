@@ -1,9 +1,12 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI=8
 
-inherit multilib
+LUA_COMPAT=( lua5-{1..4} luajit )
+PYTHON_COMPAT=( python3_{10..13} )
+
+inherit eapi9-ver lua-single python-any-r1
 
 DESCRIPTION="The PowerDNS Daemon"
 HOMEPAGE="https://www.powerdns.com/"
@@ -13,73 +16,70 @@ LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 
-# other possible flags:
-# db2: we lack the dep
-# oracle: dito (need Oracle Client Libraries)
-# xdb: (almost) dead, surely not supported
-
-IUSE="debug doc geoip ldap libressl luajit lua-records mydns mysql postgres protobuf remote sodium sqlite systemd tools tinydns test"
+IUSE="debug doc geoip ldap lmdb lua-records mysql odbc postgres remote sodium sqlite systemd tools tinydns test"
 RESTRICT="!test? ( test )"
 
-REQUIRED_USE="mydns? ( mysql )"
+REQUIRED_USE="${LUA_REQUIRED_USE}"
 
-RDEPEND="
-	libressl? ( dev-libs/libressl:= )
-	!libressl? ( dev-libs/openssl:= )
-	>=dev-libs/boost-1.35:=
-	!luajit? ( dev-lang/lua:= )
-	luajit? ( dev-lang/luajit:= )
+DEPEND="${LUA_DEPS}
+	dev-libs/openssl:=
+	dev-libs/boost:=
+	lmdb? ( >=dev-db/lmdb-0.9.29 )
 	lua-records? ( >=net-misc/curl-7.21.3 )
 	mysql? ( dev-db/mysql-connector-c:= )
 	postgres? ( dev-db/postgresql:= )
-	ldap? ( >=net-nds/openldap-2.0.27-r4 app-crypt/mit-krb5 )
+	ldap? ( >=net-nds/openldap-2.0.27-r4:= app-crypt/mit-krb5 )
+	odbc? ( dev-db/unixODBC )
 	sqlite? ( dev-db/sqlite:3 )
 	geoip? ( >=dev-cpp/yaml-cpp-0.5.1:= dev-libs/geoip )
 	sodium? ( dev-libs/libsodium:= )
 	tinydns? ( >=dev-db/tinycdb-0.77 )
-	protobuf? ( dev-libs/protobuf )"
-DEPEND="${RDEPEND}"
-RDEPEND="${RDEPEND}
+	elibc_glibc? ( x86? ( >=sys-libs/glibc-2.34 ) )"
+RDEPEND="${DEPEND}
 	acct-user/pdns
 	acct-group/pdns"
 
-BDEPEND="virtual/pkgconfig
-	doc? ( app-doc/doxygen )"
+BDEPEND="${PYTHON_DEPS}
+	virtual/pkgconfig
+	doc? ( app-text/doxygen[dot] )"
 
 S="${WORKDIR}"/${P/_/-}
 
-PATCHES=( "${FILESDIR}"/${P}-boost-1.73-compatibility.patch )
+pkg_setup() {
+	lua-single_pkg_setup
+	python-any-r1_pkg_setup
+}
 
 src_configure() {
-	local dynmodules="pipe bind" # the default backends, always enabled
+	local cnf_dynmodules="bind lua2 pipe" # the default backends, always enabled
 
-	#use db2 && dynmodules+=" db2"
-	use ldap && dynmodules+=" ldap"
-	use mydns && dynmodules+=" mydns"
-	use mysql && dynmodules+=" gmysql"
-	#use oracle && dynmodules+=" goracle oracle"
-	use postgres && dynmodules+=" gpgsql"
-	use remote && dynmodules+=" remote"
-	use sqlite && dynmodules+=" gsqlite3"
-	use tinydns && dynmodules+=" tinydns"
-	use geoip && dynmodules+=" geoip"
-	#use xdb && dynmodules+=" xdb"
+	use geoip && cnf_dynmodules+=" geoip"
+	use ldap && cnf_dynmodules+=" ldap"
+	use lmdb && cnf_dynmodules+=" lmdb"
+	use mysql && cnf_dynmodules+=" gmysql"
+	use odbc && cnf_dynmodules+=" godbc"
+	use postgres && cnf_dynmodules+=" gpgsql"
+	use remote && cnf_dynmodules+=" remote"
+	use sqlite && cnf_dynmodules+=" gsqlite3"
+	use tinydns && cnf_dynmodules+=" tinydns"
 
 	econf \
+		--enable-experimental-64bit-time_t-support-on-glibc \
 		--disable-static \
 		--sysconfdir=/etc/powerdns \
 		--libdir=/usr/$(get_libdir)/powerdns \
+		--with-service-user=pdns \
+		--with-service-group=pdns \
 		--with-modules= \
-		--with-dynmodules="${dynmodules}" \
+		--with-dynmodules="${cnf_dynmodules}" \
 		--with-mysql-lib=/usr/$(get_libdir) \
-		--with-lua=$(usex luajit luajit lua) \
+		--with-lua="${ELUA}" \
 		$(use_enable debug verbose-logging) \
 		$(use_enable lua-records) \
 		$(use_enable test unit-tests) \
 		$(use_enable tools) \
 		$(use_enable systemd) \
 		$(use_with sodium libsodium) \
-		$(use_with protobuf) \
 		${myconf}
 }
 
@@ -125,25 +125,16 @@ src_install() {
 }
 
 pkg_postinst() {
-	chown -R root:pdns ${EROOT}/etc/powerdns || die
-	chmod 750 ${EROOT}/etc/powerdns || die
-	chmod 640 ${EROOT}/etc/powerdns/pdns.conf || die
+	chown -R root:pdns "${EROOT}"/etc/powerdns || die
+	chmod 750 "${EROOT}"/etc/powerdns || die
+	chmod 640 "${EROOT}"/etc/powerdns/pdns.conf || die
 	elog "PowerDNS provides multiple instances support. You can create more instances"
 	elog "by symlinking the pdns init script to another name."
 	elog
 	elog "The name must be in the format pdns.<suffix> and PowerDNS will use the"
 	elog "/etc/powerdns/pdns-<suffix>.conf configuration file instead of the default."
 
-	if use ldap ; then
-		echo
-		ewarn "The official LDAP backend module is only compile-tested by upstream."
-		ewarn "Try net-dns/pdns-ldap-backend if you have problems with it."
-	fi
-
-	local old
-	for old in ${REPLACING_VERSIONS}; do
-		ver_test ${old} -lt 3.2 || continue
-
+	if ver_replacing -lt 3.2; then
 		echo
 		ewarn "To fix a security bug (bug #458018) had the following"
 		ewarn "files/directories the world-readable bit removed (if set):"
@@ -152,22 +143,14 @@ pkg_postinst() {
 		ewarn "Check if this is correct for your setup"
 		ewarn "This is a one-time change and will not happen on subsequent updates."
 		chmod o-rwx "${EPREFIX}"/etc/powerdns/{,pdns.conf}
+	fi
 
-		break
-	done
-
-	if use postgres; then
-		for old in ${REPLACING_VERSIONS}; do
-			ver_test ${old} -lt 4.1.11-r1 || continue
-
-			echo
-			ewarn "PowerDNS 4.1.11 contains a security fix for the PostgreSQL backend."
-			ewarn "This security fix needs to be applied manually to the database schema."
-			ewarn "Please refer to the official security advisory for more information:"
-			ewarn
-			ewarn "  https://doc.powerdns.com/authoritative/security-advisories/powerdns-advisory-2019-06.html"
-
-			break
-		done
+	if use postgres && ver_replacing -lt 4.1.11-r1; then
+		echo
+		ewarn "PowerDNS 4.1.11 contains a security fix for the PostgreSQL backend."
+		ewarn "This security fix needs to be applied manually to the database schema."
+		ewarn "Please refer to the official security advisory for more information:"
+		ewarn
+		ewarn "  https://doc.powerdns.com/authoritative/security-advisories/powerdns-advisory-2019-06.html"
 	fi
 }
